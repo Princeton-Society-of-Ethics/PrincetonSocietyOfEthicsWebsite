@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
+import LetterReveal from "@/components/ui/LetterReveal";
+
+const TITLE_LINE_1 = "What do we owe";
+const TITLE_LINE_2 = "to each other?";
+const LETTER_STEP_MS = 55;
+
+interface HomeHeroProps {
+  /** Animate the headline letter by letter (used for the intro handoff). */
+  titleReveal?: boolean;
+}
 
 const quotes = [
   { text: "The unexamined life is not worth living.", attribution: "Socrates" },
@@ -10,7 +20,7 @@ const quotes = [
 ];
 
 /** Full-screen dark landing hero with the Socrates artwork and floating quotes. */
-export default function HomeHero() {
+export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-foreground via-foreground to-foreground/95 pb-24 pt-32 text-background">
       {/* Soft orange glows */}
@@ -36,9 +46,31 @@ export default function HomeHero() {
 
       <div className="container relative z-10 grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div className="space-y-8 pt-20 animate-fade-in-up">
-          <h1 className="font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl stagger-1">
-            What do we owe <br />
-            <span className="italic text-primary">to each other?</span>
+          <h1
+            aria-label={`${TITLE_LINE_1} ${TITLE_LINE_2}`}
+            className="font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl stagger-1"
+          >
+            {titleReveal ? (
+              <>
+                <LetterReveal
+                  text={TITLE_LINE_1}
+                  stepMs={LETTER_STEP_MS}
+                  className="text-background"
+                />
+                <br />
+                <LetterReveal
+                  text={TITLE_LINE_2}
+                  stepMs={LETTER_STEP_MS}
+                  baseDelayMs={TITLE_LINE_1.length * LETTER_STEP_MS + 200}
+                  className="italic text-primary"
+                />
+              </>
+            ) : (
+              <span aria-hidden>
+                {TITLE_LINE_1} <br />
+                <span className="italic text-primary">{TITLE_LINE_2}</span>
+              </span>
+            )}
           </h1>
 
           <p className="max-w-xl text-lg font-light leading-relaxed text-background/80 md:text-xl stagger-2">

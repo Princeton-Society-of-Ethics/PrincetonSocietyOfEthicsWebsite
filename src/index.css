@@ -13,6 +13,10 @@
   --color-muted-foreground: oklch(0.5 0.02 45);
   --color-border: oklch(0.85 0.01 85);
 
+  /* Accent colors: Slate Blue #4A5D75 and a deep warm brown */
+  --color-slate-blue: oklch(0.45 0.07 255);
+  --color-brown: oklch(0.33 0.06 55);
+
   --font-serif: "Playfair Display", Georgia, serif;
   --font-sans: "Inter", system-ui, sans-serif;
 
@@ -86,4 +90,54 @@
 @utility stagger-* {
   animation: fade-in-up 0.6s ease-out both;
   animation-delay: calc(--value(integer) * 100ms);
+}
+
+/* Intro overlay (IntroOverlay.tsx) — element delays are set inline from its timeline */
+@keyframes intro-photo-pan {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes intro-logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.intro-photo {
+  animation: intro-photo-pan 1.4s ease-out both;
+}
+
+.intro-logo-in {
+  animation: intro-logo-in 0.8s ease-out both;
+}
+
+/* Letter-by-letter reveal (LetterReveal.tsx) */
+@keyframes letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-letter-in {
+  animation: letter-in 0.5s ease-out both;
 }
