@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Editor and OS files
+.DS_Store
+.idea/
+*.swp
+
+# Logs
+npm-debug.log*
+*.log
+
+# Vercel local project linkage
+.vercel/
