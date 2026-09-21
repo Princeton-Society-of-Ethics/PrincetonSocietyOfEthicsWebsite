@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import SectionHeading from "@/components/sections/SectionHeading";
 import { Accent } from "@/components/sections/PageHero";
+import CtaLink from "@/components/ui/CtaLink";
 import { initiatives } from "@/content/initiatives";
 
 /** Four-card overview of the society's initiatives, shown on the home page. */
@@ -34,12 +34,13 @@ export default function InitiativesGrid() {
                 <p className="flex-grow text-base leading-relaxed text-muted-foreground">
                   {initiative.summary}
                 </p>
-                <Link
-                  to={initiative.cta.href}
+                <CtaLink
+                  href={initiative.cta.href}
+                  external={initiative.cta.external}
                   className="mt-6 inline-flex items-center font-medium text-primary transition-all hover:text-primary/80 group-hover:translate-x-1"
                 >
                   LEARN MORE <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
+                </CtaLink>
               </article>
             );
           })}

@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import CtaBanner from "@/components/sections/CtaBanner";
 import PageHero, { Accent } from "@/components/sections/PageHero";
+import CtaLink from "@/components/ui/CtaLink";
 import { initiatives } from "@/content/initiatives";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,9 @@ export default function InitiativesPage() {
                     {initiative.details}
                   </p>
 
-                  <Link
-                    to={initiative.cta.href}
+                  <CtaLink
+                    href={initiative.cta.href}
+                    external={initiative.cta.external}
                     className="group inline-flex items-center gap-2 font-serif text-sm font-semibold uppercase tracking-wider text-primary transition-colors hover:text-primary/80"
                   >
                     {initiative.cta.label}
@@ -55,15 +56,18 @@ export default function InitiativesPage() {
                       className="h-4 w-4 transition-transform group-hover:translate-x-1"
                       aria-hidden
                     />
-                  </Link>
+                  </CtaLink>
                 </div>
 
-                {/* Decorative panel opposite the text */}
+                {/* Photo panel opposite the text */}
                 <div className={cn(!isEven && "lg:order-1")}>
-                  <div className="relative flex h-80 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5">
-                    <div className="absolute -mr-16 -mt-16 right-0 top-0 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
-                    <div className="absolute -mb-20 -ml-20 bottom-0 left-0 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
-                    <initiative.icon className="h-24 w-24 text-primary/40" aria-hidden />
+                  <div className="h-80 overflow-hidden rounded-lg border border-primary/20 shadow-md">
+                    <img
+                      src={initiative.image.src}
+                      alt={initiative.image.alt}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               </div>
