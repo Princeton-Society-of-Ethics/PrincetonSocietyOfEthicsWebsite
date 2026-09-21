@@ -19,14 +19,26 @@ export const advisors: TeamMember[] = [
   {
     name: "Professor Peter Singer",
     role: "Advisor",
-    imageSrc: "/images/advisors/peter-singer.png",
+    imageSrc: "/images/advisors/peter-singer.jpg",
     imageAlt: "Portrait of Professor Peter Singer",
   },
   {
     name: "Professor Gideon A. Rosen",
     role: "Advisor",
-    imageSrc: "/images/advisors/gideon-rosen.png",
+    imageSrc: "/images/advisors/gideon-rosen.jpg",
     imageAlt: "Portrait of Professor Gideon A. Rosen",
+  },
+  {
+    name: "Professor Lara Buchak",
+    role: "Advisor",
+    imageSrc: "/images/advisors/lara-buchak.jpg",
+    imageAlt: "Portrait of Professor Lara Buchak",
+  },
+  {
+    name: "Professor Sarah McGrath",
+    role: "Advisor",
+    imageSrc: "/images/advisors/sarah-mcgrath.jpg",
+    imageAlt: "Portrait of Professor Sarah McGrath",
   },
 ];
 
@@ -50,29 +62,11 @@ export const teamGroups: TeamGroup[] = [
         imageAlt: "Portrait of Sabrina Wang",
       },
       {
-        name: "James Han",
-        role: "Chief Marketing Officer",
-        linkedinUrl: "https://www.linkedin.com/in/james-han",
-      },
-      { name: "Jianyi", role: "Treasurer", linkedinUrl: "https://www.linkedin.com/in/jianyi" },
-      {
-        name: "Ethan Grover",
-        role: "Community Officer",
-        linkedinUrl: "https://www.linkedin.com/in/ethan-grover",
-      },
-      {
         name: "Maribel Crespo",
         role: "Technology Director",
         linkedinUrl: "https://www.linkedin.com/in/maribel-crespo-134a33284/",
         imageSrc: "/images/team/maribel-crespo.png",
         imageAlt: "Portrait of Maribel Crespo",
-      },
-      {
-        name: "Hallie Graham",
-        role: "Strategic Outreach Officer",
-        linkedinUrl: "https://www.linkedin.com/in/hallie-graham27/",
-        imageSrc: "/images/team/hallie-graham.png",
-        imageAlt: "Portrait of Hallie Graham",
       },
     ],
   },
@@ -87,16 +81,6 @@ export const teamGroups: TeamGroup[] = [
         imageSrc: "/images/team/navneeth-gurachar.png",
         imageAlt: "Portrait of Navneeth Gurachar",
       },
-      {
-        name: "Quest Starkey",
-        role: "Captain of Team 2",
-        linkedinUrl: "https://www.linkedin.com/in/quest-starkey",
-      },
-      {
-        name: "Matthew Newman",
-        role: "Coach",
-        linkedinUrl: "https://www.linkedin.com/in/matthew-newman",
-      },
     ],
   },
   {
@@ -108,11 +92,6 @@ export const teamGroups: TeamGroup[] = [
         role: "Coach",
         linkedinUrl: "https://www.linkedin.com/in/tenzin-namgyal",
       },
-      {
-        name: "Patrick Jimenez",
-        role: "Coach",
-        linkedinUrl: "https://www.linkedin.com/in/patrick-jimenez",
-      },
       { name: "Professor Alexandra Oprea", role: "Consultant", linkedinUrl: null },
     ],
   },
@@ -120,11 +99,6 @@ export const teamGroups: TeamGroup[] = [
     eyebrow: "Publication",
     title: "Telos Magazine",
     members: [
-      {
-        name: "Jacqueline Zhou",
-        role: "Editor-in-Chief",
-        linkedinUrl: "https://www.linkedin.com/in/jacqueline-zhou",
-      },
       {
         name: "Doris Lee",
         role: "Creative Director",
