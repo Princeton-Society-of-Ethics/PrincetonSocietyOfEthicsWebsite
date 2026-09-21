@@ -4,7 +4,6 @@ import PageHero, { Accent } from "@/components/sections/PageHero";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
-import Textarea from "@/components/ui/Textarea";
 import { faqs, joinSteps } from "@/content/join";
 import { submitJoinInquiry } from "@/lib/api/membership";
 
@@ -23,10 +22,7 @@ export default function JoinPage() {
 
     setStatus({ kind: "submitting" });
     const result = await submitJoinInquiry({
-      name: String(data.get("name") ?? ""),
       email: String(data.get("email") ?? ""),
-      classYear: String(data.get("classYear") ?? ""),
-      message: String(data.get("message") ?? ""),
     });
 
     setStatus(result.ok ? { kind: "submitted" } : { kind: "error", message: result.reason });
@@ -84,8 +80,7 @@ export default function JoinPage() {
             <span className="mb-4 block font-serif text-sm italic text-primary">Get in Touch</span>
             <h2 className="font-serif text-5xl font-bold text-foreground">Join Inquiry Form</h2>
             <p className="mt-4 text-muted-foreground">
-              Tell us a bit about yourself and why you're interested in joining. We'll get back to
-              you shortly.
+              Leave your email and we'll get back to you shortly.
             </p>
           </div>
 
@@ -95,44 +90,15 @@ export default function JoinPage() {
                 Thank you for your interest!
               </p>
               <p className="text-muted-foreground">
-                We've received your inquiry and will be in touch soon. In the meantime, feel free
-                to attend one of our upcoming events.
+                We've received your inquiry and will be in touch soon. In the meantime, feel free to
+                attend one of our upcoming events.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input id="name" name="name" placeholder="Your name" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="classYear">Class Year (optional)</Label>
-                <Input id="classYear" name="classYear" placeholder="e.g., 2026" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="message">Why are you interested in joining? *</Label>
-                <Textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  required
-                  className="resize-none"
-                  placeholder="Tell us about your interest in ethics, what you hope to contribute, or any questions you have..."
-                />
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" name="email" type="email" placeholder="your@email.com" required />
               </div>
 
               {status.kind === "error" && (
@@ -141,13 +107,15 @@ export default function JoinPage() {
                 </p>
               )}
 
-              <Button
-                type="submit"
-                disabled={status.kind === "submitting"}
-                className="w-full px-12 sm:w-auto"
-              >
-                {status.kind === "submitting" ? "Submitting..." : "Submit Inquiry"}
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  type="submit"
+                  disabled={status.kind === "submitting"}
+                  className="w-full px-12 sm:w-auto"
+                >
+                  {status.kind === "submitting" ? "Submitting..." : "Submit Inquiry"}
+                </Button>
+              </div>
             </form>
           )}
         </div>

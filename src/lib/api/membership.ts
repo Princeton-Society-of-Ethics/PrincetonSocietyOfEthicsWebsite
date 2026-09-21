@@ -1,15 +1,6 @@
 import { isApiConfigured, request } from "./client";
 
 export interface JoinInquiry {
-  name: string;
-  email: string;
-  classYear?: string;
-  message: string;
-}
-
-export interface NewsletterSignup {
-  firstName?: string;
-  lastName?: string;
   email: string;
 }
 
@@ -26,16 +17,5 @@ export async function submitJoinInquiry(inquiry: JoinInquiry): Promise<Submissio
     return { ok: true };
   } catch {
     return { ok: false, reason: "Something went wrong submitting your inquiry. Please try again." };
-  }
-}
-
-/** Subscribe an email address to the newsletter. */
-export async function subscribeToNewsletter(signup: NewsletterSignup): Promise<SubmissionResult> {
-  if (!isApiConfigured) return { ok: false, reason: NO_BACKEND_MESSAGE };
-  try {
-    await request("/newsletter-signups", { method: "POST", body: signup });
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "Something went wrong subscribing. Please try again." };
   }
 }
