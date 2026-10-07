@@ -1,8 +1,26 @@
 import CtaBanner from "@/components/sections/CtaBanner";
 import PageHero, { Accent } from "@/components/sections/PageHero";
 import TeamMemberCard from "@/components/sections/TeamMemberCard";
+import TeamMemberGrid from "@/components/sections/TeamMemberGrid";
 import TeamSection from "@/components/sections/TeamSection";
-import { advisors, teamGroups } from "@/content/team";
+import { advisors, teamGroups, type TeamGroup, type TeamMember } from "@/content/team";
+
+function renderMembers(members: TeamMember[]) {
+  return members.map((member) => (
+    <TeamMemberCard key={`${member.name}-${member.role}`} member={member} />
+  ));
+}
+
+function TeamGroupMembers({ group }: { group: TeamGroup }) {
+  if ("tiers" in group) {
+    return group.tiers.map((tier) => (
+      <TeamMemberGrid key={tier.label} label={tier.label}>
+        {renderMembers(tier.members)}
+      </TeamMemberGrid>
+    ));
+  }
+  return <TeamMemberGrid>{renderMembers(group.members)}</TeamMemberGrid>;
+}
 
 export default function TeamPage() {
   return (
@@ -21,9 +39,11 @@ export default function TeamPage() {
         title="Advisors"
         description="Our work is guided by distinguished scholars in ethics and philosophy."
       >
-        {advisors.map((member) => (
-          <TeamMemberCard key={member.name} member={member} size="large" />
-        ))}
+        <TeamMemberGrid>
+          {advisors.map((member) => (
+            <TeamMemberCard key={member.name} member={member} size="large" />
+          ))}
+        </TeamMemberGrid>
       </TeamSection>
 
       {teamGroups.map((group, index) => (
@@ -34,9 +54,7 @@ export default function TeamPage() {
           description={group.description}
           tinted={index % 2 === 0}
         >
-          {group.members.map((member) => (
-            <TeamMemberCard key={`${member.name}-${member.role}`} member={member} />
-          ))}
+          <TeamGroupMembers group={group} />
         </TeamSection>
       ))}
 

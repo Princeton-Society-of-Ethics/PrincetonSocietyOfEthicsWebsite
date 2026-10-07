@@ -7,6 +7,7 @@ interface TeamSectionProps {
   description?: string;
   /** Warm orange wash behind the section. */
   tinted?: boolean;
+  /** One or more TeamMemberGrids, stacked vertically. */
   children: ReactNode;
 }
 
@@ -20,7 +21,10 @@ export default function TeamSection({
 }: TeamSectionProps) {
   return (
     <section
-      className={cn("border-b border-primary/10 py-20 last:border-b-0", tinted && "bg-primary/[0.045]")}
+      className={cn(
+        "border-b border-primary/10 py-20 last:border-b-0",
+        tinted && "bg-primary/[0.045]"
+      )}
     >
       <div className="container max-w-6xl">
         <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -37,7 +41,7 @@ export default function TeamSection({
             </p>
           )}
         </div>
-        <div className="flex flex-wrap justify-center gap-x-10 gap-y-14 sm:gap-x-14">{children}</div>
+        <div className="space-y-16">{children}</div>
       </div>
     </section>
   );

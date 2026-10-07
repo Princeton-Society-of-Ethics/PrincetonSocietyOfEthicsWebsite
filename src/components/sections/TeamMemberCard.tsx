@@ -1,9 +1,27 @@
-import { ArrowRight, Linkedin } from "lucide-react";
+import { ArrowRight, GraduationCap, Linkedin, type LucideIcon } from "lucide-react";
 import type { TeamMember } from "@/content/team";
 import { cn } from "@/lib/utils";
 
-function memberInitial(name: string) {
-  return name.replace(/^Professor\s+/i, "").charAt(0);
+interface ProfileLinkProps {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+/** Subtle external link under a member's role (LinkedIn, faculty page). */
+function ProfileLink({ href, label, icon: Icon }: ProfileLinkProps) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary opacity-50 transition-opacity hover:opacity-100 group-hover:opacity-80"
+    >
+      <Icon className="h-4 w-4 shrink-0" aria-hidden />
+      <span>{label}</span>
+      <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+    </a>
+  );
 }
 
 interface TeamMemberCardProps {
@@ -12,9 +30,8 @@ interface TeamMemberCardProps {
   size?: "default" | "large";
 }
 
-/** Circular portrait (or initial placeholder), name, role, and optional LinkedIn link. */
+/** Circular portrait (or initial placeholder), name, role, and optional profile links. */
 export default function TeamMemberCard({ member, size = "default" }: TeamMemberCardProps) {
-  const showLinkedIn = Boolean(member.linkedinUrl) && !/^professor\s+/i.test(member.name);
   const large = size === "large";
 
   return (
@@ -40,7 +57,7 @@ export default function TeamMemberCard({ member, size = "default" }: TeamMemberC
           />
         ) : (
           <span className="text-4xl font-semibold text-muted-foreground/85 transition-colors duration-300 group-hover:text-primary sm:text-5xl">
-            {memberInitial(member.name)}
+            {member.name.charAt(0)}
           </span>
         )}
       </div>
@@ -57,17 +74,11 @@ export default function TeamMemberCard({ member, size = "default" }: TeamMemberC
         {member.role}
       </p>
 
-      {showLinkedIn && (
-        <a
-          href={member.linkedinUrl!}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary opacity-50 transition-opacity hover:opacity-100 group-hover:opacity-80"
-        >
-          <Linkedin className="h-4 w-4 shrink-0" aria-hidden />
-          <span>LinkedIn</span>
-          <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        </a>
+      {member.facultyPageUrl && (
+        <ProfileLink href={member.facultyPageUrl} label="Faculty Page" icon={GraduationCap} />
+      )}
+      {member.linkedinUrl && (
+        <ProfileLink href={member.linkedinUrl} label="LinkedIn" icon={Linkedin} />
       )}
     </div>
   );
