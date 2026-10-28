@@ -1,11 +1,14 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Check, Search } from "lucide-react";
+import { Check, Mail, Search } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
+import { ethicsBowlRegistration } from "@/content/ethicsBowlRegistration";
 import { loadSchools, searchSchools, type School } from "@/lib/schools";
 import { cn } from "@/lib/utils";
 
 type IndexedSchools = Awaited<ReturnType<typeof loadSchools>>;
+
+const { unlistedSchoolEmail } = ethicsBowlRegistration;
 
 interface SchoolPickerProps {
   /** Called after the submitted school fields change, so the form can re-read them. */
@@ -100,7 +103,7 @@ export default function SchoolPicker({ onChange, inputClassName }: SchoolPickerP
       <Label htmlFor="schoolName">High school</Label>
       <p id="schoolName-hint" className="text-sm leading-relaxed text-muted-foreground">
         {manual
-          ? "Enter your school's full name and town. The organizers will confirm it with you."
+          ? "Enter your school's full name and town."
           : "Start typing your school's name or town, then choose it from the list."}
       </p>
 
@@ -226,6 +229,19 @@ export default function SchoolPicker({ onChange, inputClassName }: SchoolPickerP
             required
           />
           <input type="hidden" name="schoolVerified" value="No" />
+          <p className="flex gap-3 rounded-sm border border-primary/20 bg-primary/5 px-4 py-3 text-sm leading-relaxed text-foreground">
+            <Mail className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" aria-hidden />
+            <span>
+              School not on our list? Please also email{" "}
+              <a
+                href={`mailto:${unlistedSchoolEmail}?subject=${encodeURIComponent("Ethics Bowl registration: school not listed")}`}
+                className="font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {unlistedSchoolEmail}
+              </a>{" "}
+              with your school's name and town so the organizers can confirm it.
+            </span>
+          </p>
           {!loadFailed && (
             <button
               type="button"

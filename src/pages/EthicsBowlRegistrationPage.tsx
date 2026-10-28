@@ -1,5 +1,5 @@
 import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, MapPin } from "lucide-react";
 import { flushSync } from "react-dom";
 import { Link } from "react-router-dom";
 import PageHero, { Accent } from "@/components/sections/PageHero";
@@ -23,7 +23,7 @@ type FormStatus =
   | { kind: "submitted"; schoolName: string; registrationId: string | null }
   | { kind: "error"; message: string };
 
-const { season, eventName, contactEmail, roster } = ethicsBowlRegistration;
+const { season, eventName, event, contactEmail, roster } = ethicsBowlRegistration;
 
 const STEPS = [
   {
@@ -536,6 +536,13 @@ function RegistrationForm() {
 
 /** Welcome screen: what the event is and what to have ready before starting. */
 function Intro({ onStart }: { onStart: () => void }) {
+  // "Saturday, February 6, 2027" → "February 6, 2027" with "Saturday" underneath
+  const [weekday, calendarDate] = event.date.includes(",")
+    ? [
+        event.date.slice(0, event.date.indexOf(",")),
+        event.date.slice(event.date.indexOf(",") + 1).trim(),
+      ]
+    : ["", event.date];
   const facts = [
     { value: `${roster.min}–${roster.max}`, label: "Students per team" },
     { value: String(roster.maxPerMatch), label: "Compete per match" },
@@ -560,6 +567,15 @@ function Intro({ onStart }: { onStart: () => void }) {
         complex moral questions about real-world issues. Rather than debating to win points, teams
         are judged on careful reasoning, respect for other perspectives, and thoughtful dialogue.
       </p>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <EventDetail icon={CalendarDays} primary={calendarDate}>
+          {[weekday, event.dateIsTentative && "Tentative date"].filter(Boolean).join(" · ")}
+        </EventDetail>
+        <EventDetail icon={MapPin} primary={event.venue}>
+          {event.place}
+        </EventDetail>
+      </div>
 
       <dl className="mt-12 grid grid-cols-3 divide-x divide-border border-y border-border">
         {facts.map((fact) => (
@@ -600,6 +616,28 @@ function Intro({ onStart }: { onStart: () => void }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+function EventDetail({
+  icon: Icon,
+  primary,
+  children,
+}: {
+  icon: typeof MapPin;
+  primary: string;
+  children: ReactNode;
+}) {
+  return (
+    <p className="flex items-center gap-4 rounded-sm border border-border bg-card px-5 py-4">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+        <Icon className="h-5 w-5 text-primary" aria-hidden />
+      </span>
+      <span>
+        <span className="block font-medium text-foreground">{primary}</span>
+        <span className="block text-sm text-muted-foreground">{children}</span>
+      </span>
+    </p>
   );
 }
 
@@ -912,8 +950,10 @@ function Confirmation({
         Thank you{schoolName && `, ${schoolName}`}
       </h2>
       <p className="mx-auto max-w-md leading-relaxed text-muted-foreground">
-        Your team is registered for the {season} {eventName}. The organizers will follow up with
-        your coach by email with event details.
+        Your team is registered for the {season} {eventName},{" "}
+        {event.dateIsTentative && "tentatively "}
+        on {event.date} at {event.venue}, {event.place}. The organizers will follow up with your
+        coach by email with event details.
       </p>
       {registrationId && (
         <p className="mx-auto mt-8 inline-flex flex-col items-center rounded-sm border border-border bg-card px-6 py-3">

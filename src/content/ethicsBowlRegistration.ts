@@ -8,7 +8,7 @@
  * notice for anyone following an old link.
  *
  * Each year:
- *   1. Update `season` (and `closesAt` if there is a deadline).
+ *   1. Update `season` and `event` (and `closesAt` if there is a deadline).
  *   2. Set `isOpen: true`.
  *   3. Make sure `submitUrl` points at the Google Apps Script web app that
  *      writes to the registrations sheet (setup: scripts/ethics-bowl-registration.gs).
@@ -26,8 +26,17 @@ export const ethicsBowlRegistration = {
   closesAt: null as string | null,
   season: "2026–2027",
   eventName: "New Jersey High School Ethics Bowl",
+  /** When and where the bowl takes place. Set `dateIsTentative: false` once it's confirmed. */
+  event: {
+    date: "Saturday, February 6, 2027",
+    dateIsTentative: true,
+    venue: "Friend Center",
+    place: "Princeton University",
+  },
   /** Google Apps Script web app URL ("https://script.google.com/macros/s/.../exec"). */
   submitUrl: "",
+  /** Who coaches email when their school isn't in the high school list. */
+  unlistedSchoolEmail: "ji7445@princeton.edu",
   /** Where coaches can send questions. Leave null to hide. */
   contactEmail: null as string | null,
   roster: { min: 3, max: 7, maxPerMatch: 5 },
