@@ -34,7 +34,8 @@ export const ethicsBowlRegistration = {
     place: "Princeton University",
   },
   /** Google Apps Script web app URL ("https://script.google.com/macros/s/.../exec"). */
-  submitUrl: "",
+  submitUrl:
+    "https://script.google.com/macros/s/AKfycbypKWalYhTrZpNax2A9mrK8KOoPFhbewu9b0Vo2ZKxnkwmjMLjiXMcus5s1vTylJKCW/exec",
   /** Who coaches email when their school isn't in the high school list. */
   unlistedSchoolEmail: "ji7445@princeton.edu",
   /** Where coaches can send questions. Leave null to hide. */
