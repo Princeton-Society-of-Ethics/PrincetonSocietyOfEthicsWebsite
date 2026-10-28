@@ -190,3 +190,18 @@
 .animate-letter-in {
   animation: letter-in 0.5s ease-out both;
 }
+
+/* Self-drawing check mark (Ethics Bowl registration confirmation) */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw {
+  stroke-dasharray: 24;
+  animation: draw 0.6s 0.35s ease-out both;
+}

@@ -1,6 +1,8 @@
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import LetterReveal from "@/components/ui/LetterReveal";
+import { ethicsBowlRegistration, isRegistrationOpen } from "@/content/ethicsBowlRegistration";
 
 const TITLE_LINE_1 = "What do we owe";
 const TITLE_LINE_2 = "to each other?";
@@ -46,6 +48,21 @@ export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
 
       <div className="container relative z-10 grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div className="space-y-8 pt-20 animate-fade-in-up">
+          {isRegistrationOpen() && (
+            <Link
+              to="/register"
+              className="group inline-flex max-w-full items-center gap-3 rounded-full border border-primary/40 bg-primary/10 py-1.5 pl-2 pr-4 text-sm text-background/90 transition-colors hover:border-primary hover:bg-primary/20 stagger-1"
+            >
+              <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+                Now open
+              </span>
+              <span className="min-w-0">{ethicsBowlRegistration.eventName} team registration</span>
+              <ArrowRight
+                className="h-4 w-4 flex-shrink-0 text-primary transition-transform group-hover:translate-x-1"
+                aria-hidden
+              />
+            </Link>
+          )}
           <h1
             aria-label={`${TITLE_LINE_1} ${TITLE_LINE_2}`}
             className="font-serif text-5xl font-bold leading-tight tracking-tight md:text-7xl stagger-1"

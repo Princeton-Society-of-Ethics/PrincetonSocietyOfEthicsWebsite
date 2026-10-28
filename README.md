@@ -55,12 +55,14 @@ Before opening a pull request, make sure `npm run build` and `npm run lint` both
 ```
 public/                  Static assets served as-is (images, audio)
   images/                Logos, team photos, event galleries
+scripts/                 Google Apps Script for Ethics Bowl registrations
 src/
   content/               ★ All site text and data, strongly typed
     site.ts              Org name, navigation links, social links
     team.ts              Advisors and team member rosters
     initiatives.ts       Initiative descriptions + photo gallery data
     join.ts              FAQ and "how to join" steps
+    ethicsBowlRegistration.ts  NJ HS Ethics Bowl registration switch + settings
     magazine.ts          Telos issues and articles
     episodes.ts          Interview Series podcast episodes
   components/
@@ -84,6 +86,16 @@ Most updates only touch `src/content/` — no component changes needed:
 - **Update navigation** → edit `src/content/site.ts`.
 - **Add a podcast episode** → drop the audio file in `public/audio/interviews/` and add an entry in `src/content/episodes.ts`.
 - **Change colors/fonts** → edit the `@theme` block in `src/index.css`.
+- **Open/close NJ High School Ethics Bowl registration** → edit `src/content/ethicsBowlRegistration.ts` (see below).
+
+### NJ High School Ethics Bowl registration
+
+While registration is open, the team registration form lives at `/register` (`/njhseb` redirects there), and links to it appear in the home page hero, the menu, the footer, and on the Initiatives page. Submissions go to a Google Sheet through a small Google Apps Script.
+
+- **Close registration:** set `isOpen: false` in `src/content/ethicsBowlRegistration.ts`, or set `closesAt` to a deadline and it closes on its own. All the links disappear, and `/register` shows a "registration is closed" notice.
+- **Reopen next year:** update `season`, set `isOpen: true`, and check that `submitUrl` still points at a working sheet.
+- **Connect the Google Sheet:** follow the setup steps at the top of `scripts/ethics-bowl-registration.gs`, then paste the web app URL into `submitUrl`.
+- **School list:** coaches pick their school from `public/data/nj-high-schools.json`, every open New Jersey public, charter, and private school that teaches 12th grade, built from U.S. Department of Education (NCES) data. Refresh it each fall with `node scripts/update-nj-high-schools.mjs <ccdYear> <pssFile>` (the script's header explains where to find the newest year and file). Schools missing from the list can still register with "My school isn't listed"; those rows are marked for the organizers to verify.
 
 ### Adding a new page
 

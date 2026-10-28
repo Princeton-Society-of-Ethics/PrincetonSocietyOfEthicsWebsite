@@ -3,6 +3,11 @@
  * Edit this file to update the header, footer, and site-wide details.
  */
 
+import { isRegistrationOpen } from "./ethicsBowlRegistration";
+
+/** Ethics Bowl registration links only appear while registration is open. */
+const registrationOpen = isRegistrationOpen();
+
 export const siteConfig = {
   name: "Princeton Undergraduate Society of Ethics",
   shortName: "Princeton Society of Ethics",
@@ -40,6 +45,7 @@ export const footerNav: { heading: string; items: (NavItem & { external?: boolea
     heading: "Connect",
     items: [
       { label: "Join Us", href: "/join" },
+      ...(registrationOpen ? [{ label: "Ethics Bowl Registration", href: "/register" }] : []),
       { label: "Instagram", href: siteConfig.links.instagram, external: true },
     ],
   },

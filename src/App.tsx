@@ -1,8 +1,9 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageLayout from "@/components/layout/PageLayout";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import AboutPage from "@/pages/AboutPage";
+import EthicsBowlRegistrationPage from "@/pages/EthicsBowlRegistrationPage";
 import HomePage from "@/pages/HomePage";
 import InitiativesPage from "@/pages/InitiativesPage";
 import InterviewSeriesPage from "@/pages/InterviewSeriesPage";
@@ -28,6 +29,8 @@ export default function App() {
             <Route path="/journal" element={<MagazinePage />} />
             <Route path="/magazine" element={<MagazinePage />} />
             <Route path="/join" element={<JoinPage />} />
+            <Route path="/register" element={<EthicsBowlRegistrationPage />} />
+            <Route path="/njhseb" element={<Navigate to="/register" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

@@ -1,4 +1,5 @@
 import { Award, BookOpen, GraduationCap, Mic, type LucideIcon } from "lucide-react";
+import { isRegistrationOpen } from "./ethicsBowlRegistration";
 
 export interface GalleryImage {
   src: string;
@@ -60,7 +61,9 @@ export const initiatives: Initiative[] = [
       src: "/images/initiatives/njhseb.jpg",
       alt: "Team at the table during the NJ Regional High School Ethics Bowl",
     },
-    cta: { label: "Get involved", href: "/join" },
+    cta: isRegistrationOpen()
+      ? { label: "Register your team", href: "/register" }
+      : { label: "Get involved", href: "/join" },
   },
   {
     title: "Interview Series",

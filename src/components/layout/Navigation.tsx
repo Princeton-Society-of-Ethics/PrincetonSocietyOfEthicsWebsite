@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
+import { ethicsBowlRegistration, isRegistrationOpen } from "@/content/ethicsBowlRegistration";
 import { menuNav, primaryNav } from "@/content/site";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
@@ -130,7 +132,7 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
         )}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex w-full flex-col justify-center px-8 py-20 md:w-1/2 md:px-12">
+        <div className="relative flex w-full flex-col justify-center px-8 py-20 md:w-1/2 md:px-12">
           <h2 className="mb-12 font-serif text-4xl font-bold text-foreground md:text-5xl">Menu</h2>
           <nav className="space-y-6">
             {menuNav.map((item, index) => (
@@ -148,6 +150,26 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
               </Link>
             ))}
           </nav>
+
+          {/* Seasonal, low-key link while Ethics Bowl registration is open */}
+          {isRegistrationOpen() && (
+            <Link
+              to="/register"
+              onClick={onClose}
+              className={cn(
+                "group absolute bottom-8 left-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-500 hover:text-primary md:left-12",
+                isVisible ? "opacity-100" : "opacity-0"
+              )}
+              style={{ transitionDelay: isVisible ? `${(menuNav.length + 2) * 80}ms` : "0ms" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+              {ethicsBowlRegistration.season} NJ Ethics Bowl registration is open
+              <ArrowRight
+                className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                aria-hidden
+              />
+            </Link>
+          )}
         </div>
 
         <div
