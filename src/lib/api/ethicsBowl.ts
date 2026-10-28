@@ -1,5 +1,4 @@
 import { ethicsBowlRegistration } from "@/content/ethicsBowlRegistration";
-import type { SubmissionResult } from "./membership";
 
 export interface TeamRegistration {
   schoolName: string;
@@ -16,6 +15,34 @@ export interface TeamRegistration {
   confirmed: boolean;
   /** Hidden honeypot field; real people leave it empty. */
   website: string;
+  /** When the coach clicked "Start Registration", to measure time spent on the form. */
+  startedAt: Date | null;
+}
+
+export type RegistrationResult =
+  | {
+      ok: true;
+      /** e.g. "NJHSEB-27-0001"; null if the server didn't send one. */ registrationId:
+        string | null;
+    }
+  | { ok: false; reason: string };
+
+/**
+ * Context sent along with each registration so organizers can audit and follow
+ * up: the coach's local time and time zone, how long the form took, the page
+ * that sent them here, and their browser. The server adds its own timestamp
+ * and a registration number.
+ */
+function submissionMetadata(startedAt: Date | null) {
+  const now = new Date();
+  return {
+    clientSubmittedAt: now.toISOString(),
+    clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
+    completionSeconds: startedAt ? Math.round((now.getTime() - startedAt.getTime()) / 1000) : null,
+    referrer: document.referrer,
+    pageUrl: window.location.href,
+    userAgent: navigator.userAgent,
+  };
 }
 
 /**
@@ -26,9 +53,10 @@ export interface TeamRegistration {
  * purpose: Apps Script can't answer CORS preflight requests, which a JSON
  * content type would trigger.
  */
-export async function submitTeamRegistration(
-  registration: TeamRegistration
-): Promise<SubmissionResult> {
+export async function submitTeamRegistration({
+  startedAt,
+  ...registration
+}: TeamRegistration): Promise<RegistrationResult> {
   const { submitUrl, contactEmail, season } = ethicsBowlRegistration;
   const reachOut = contactEmail
     ? `please email us at ${contactEmail}`
@@ -44,11 +72,11 @@ export async function submitTeamRegistration(
   try {
     const response = await fetch(submitUrl, {
       method: "POST",
-      body: JSON.stringify({ ...registration, season }),
+      body: JSON.stringify({ ...registration, season, ...submissionMetadata(startedAt) }),
     });
-    const result = (await response.json()) as { ok?: boolean };
+    const result = (await response.json()) as { ok?: boolean; id?: string };
     if (!response.ok || !result.ok) throw new Error("Registration was not saved");
-    return { ok: true };
+    return { ok: true, registrationId: result.id ?? null };
   } catch {
     return {
       ok: false,

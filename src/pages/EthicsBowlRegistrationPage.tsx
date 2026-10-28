@@ -20,7 +20,7 @@ import { emailError, emailSuggestion, formatPhone, phoneError } from "@/lib/vali
 type FormStatus =
   | { kind: "idle" }
   | { kind: "submitting" }
-  | { kind: "submitted"; schoolName: string }
+  | { kind: "submitted"; schoolName: string; registrationId: string | null }
   | { kind: "error"; message: string };
 
 const { season, eventName, contactEmail, roster } = ethicsBowlRegistration;
@@ -161,7 +161,11 @@ function RegistrationForm() {
       ?.focus({ preventScroll: true });
   }
 
+  /** When "Start Registration" was first clicked; sent with the submission. */
+  const startedAtRef = useRef<Date | null>(null);
+
   function start() {
+    startedAtRef.current ??= new Date();
     flushSync(() => setStarted(true));
     goTo(0);
   }
@@ -235,10 +239,15 @@ function RegistrationForm() {
       additionalTeams: field("additionalTeams"),
       confirmed: data.get("confirmed") === "on",
       website: field("website"),
+      startedAt: startedAtRef.current,
     });
 
     if (result.ok) {
-      setStatus({ kind: "submitted", schoolName: field("schoolName") });
+      setStatus({
+        kind: "submitted",
+        schoolName: field("schoolName"),
+        registrationId: result.registrationId,
+      });
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       setStatus({ kind: "error", message: result.reason });
@@ -264,7 +273,7 @@ function RegistrationForm() {
       {started && status.kind !== "submitted" && <RegistrationBackdrop />}
       <div className="container relative max-w-2xl">
         {status.kind === "submitted" ? (
-          <Confirmation schoolName={status.schoolName} />
+          <Confirmation schoolName={status.schoolName} registrationId={status.registrationId} />
         ) : (
           <>
             {!started && <Intro onStart={start} />}
@@ -876,7 +885,13 @@ function Signature({ name }: { name: string }) {
   );
 }
 
-function Confirmation({ schoolName }: { schoolName: string }) {
+function Confirmation({
+  schoolName,
+  registrationId,
+}: {
+  schoolName: string;
+  registrationId: string | null;
+}) {
   return (
     <div className="py-8 text-center animate-fade-in-up">
       <div className="intro-logo-in mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-8 ring-primary/5">
@@ -896,10 +911,21 @@ function Confirmation({ schoolName }: { schoolName: string }) {
       <h2 className="mb-6 font-serif text-4xl font-bold text-foreground md:text-5xl">
         Thank you{schoolName && `, ${schoolName}`}
       </h2>
-      <p className="mx-auto mb-10 max-w-md leading-relaxed text-muted-foreground">
+      <p className="mx-auto max-w-md leading-relaxed text-muted-foreground">
         Your team is registered for the {season} {eventName}. The organizers will follow up with
         your coach by email with event details.
       </p>
+      {registrationId && (
+        <p className="mx-auto mt-8 inline-flex flex-col items-center rounded-sm border border-border bg-card px-6 py-3">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">
+            Registration number
+          </span>
+          <span className="mt-1 text-xl font-semibold tracking-wide tabular-nums text-foreground">
+            {registrationId}
+          </span>
+        </p>
+      )}
+      <div className="mt-10" />
       <Link to="/initiatives">
         <Button variant="outline" className="text-foreground">
           Explore Our Initiatives
