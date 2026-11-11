@@ -3,9 +3,16 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import { ethicsBowlRegistration, isRegistrationOpen } from "@/content/ethicsBowlRegistration";
+import { isVolunteerFormOpen } from "@/content/ethicsBowlVolunteer";
 import { menuNav, primaryNav } from "@/content/site";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
+
+/** Ethics Bowl forms linked from the menu's bottom corner, while each is open. */
+const ethicsBowlLinks = [
+  ...(isRegistrationOpen() ? [{ label: "Register a team", href: "/register" }] : []),
+  ...(isVolunteerFormOpen() ? [{ label: "Volunteer", href: "/volunteer" }] : []),
+];
 
 /**
  * Fixed site header. Transparent over the dark page heroes; gains a solid
@@ -151,24 +158,40 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
             ))}
           </nav>
 
-          {/* Seasonal, low-key link while Ethics Bowl registration is open */}
-          {isRegistrationOpen() && (
-            <Link
-              to="/register"
-              onClick={onClose}
+          {/* Seasonal Ethics Bowl links, grouped under one label, while either form is open */}
+          {ethicsBowlLinks.length > 0 && (
+            <div
               className={cn(
-                "group absolute bottom-8 left-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-500 hover:text-primary md:left-12",
+                "absolute bottom-8 left-8 transition-opacity duration-500 md:left-12",
                 isVisible ? "opacity-100" : "opacity-0"
               )}
               style={{ transitionDelay: isVisible ? `${(menuNav.length + 2) * 80}ms` : "0ms" }}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-              {ethicsBowlRegistration.season} NJ Ethics Bowl registration is open
-              <ArrowRight
-                className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
-                aria-hidden
-              />
-            </Link>
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+                {ethicsBowlRegistration.season} NJ Ethics Bowl
+              </p>
+              <ul className="flex flex-wrap items-center gap-y-2 text-sm">
+                {ethicsBowlLinks.map((link, index) => (
+                  <li
+                    key={link.href}
+                    className={cn(index > 0 && "ml-5 border-l border-border pl-5")}
+                  >
+                    <Link
+                      to={link.href}
+                      onClick={onClose}
+                      className="group inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
+                    >
+                      {link.label}
+                      <ArrowRight
+                        className="h-3.5 w-3.5 text-primary transition-transform group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 
