@@ -51,12 +51,18 @@ export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
           {isRegistrationOpen() && (
             <Link
               to="/register"
-              className="group inline-flex max-w-full items-center gap-3 rounded-full border border-primary/40 bg-primary/10 py-1.5 pl-2 pr-4 text-sm text-background/90 transition-colors hover:border-primary hover:bg-primary/20 stagger-1"
+              className="group inline-flex max-w-full items-center gap-2 rounded-full border border-primary/40 bg-primary/10 py-1.5 pl-2 pr-3 sm:gap-3 sm:pr-4 text-sm text-background/90 transition-colors hover:border-primary hover:bg-primary/20 stagger-1"
             >
-              <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+              <span className="flex-shrink-0 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground sm:px-2.5 sm:tracking-wider">
                 Now open
               </span>
-              <span className="min-w-0">{ethicsBowlRegistration.eventName} team registration</span>
+              {/* Keep the pill on one line: a shorter label on narrow screens, truncated as a last resort. */}
+              <span className="min-w-0 truncate">
+                <span className="sm:hidden lg:inline xl:hidden">Ethics Bowl registration</span>
+                <span className="hidden sm:inline lg:hidden xl:inline">
+                  {ethicsBowlRegistration.eventName} team registration
+                </span>
+              </span>
               <ArrowRight
                 className="h-4 w-4 flex-shrink-0 text-primary transition-transform group-hover:translate-x-1"
                 aria-hidden
