@@ -1,23 +1,43 @@
-import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useState, type CSSProperties } from "react";
 import { introPhotos } from "@/content/intro";
 import { cn } from "@/lib/utils";
 
 /**
- * Timeline (ms from mount), modeled on investments.yale.edu/prospect:
- * the logo appears on a solid orange field and splits in two, revealing a
- * frame of photos that pan through. The last photo holds, the field
- * crossfades to the hero's dark gradient, and the overlay lifts while the
- * hero title animates in underneath — so the intro ends inside the hero.
+ * Timeline (ms from mount): the logo snaps in on a solid orange field, a
+ * blade of light slashes through it on a diagonal, and the two halves shear
+ * apart along the cut, revealing a frame of photos that slice in one after
+ * another. The hero's dark gradient then wipes across on the same diagonal
+ * and the overlay lifts while the hero title animates in underneath, so the
+ * intro ends inside the hero. Roughly 4 seconds end to end.
  */
-const SPLIT_AT = 700;
-const PHOTO_START = 1300;
-const PHOTO_INTERVAL = 850;
-const LAST_PHOTO_HOLD = 1100;
+const SLASH_AT = 380;
+const SPLIT_AT = SLASH_AT + 170;
+const PHOTO_START = SPLIT_AT + 220;
+const PHOTO_INTERVAL = 420;
+const LAST_PHOTO_HOLD = 520;
 const DARK_AT = PHOTO_START + (introPhotos.length - 1) * PHOTO_INTERVAL + LAST_PHOTO_HOLD;
-const EXIT_AT = DARK_AT + 850;
-const EXIT_DURATION = 900;
+const EXIT_AT = DARK_AT + 420;
+const EXIT_DURATION = 450;
 
-const stages = ["logo", "split", "dark", "exit"] as const;
+/**
+ * The cut through the logo runs from 60% across the top edge to 40% across
+ * the bottom; each half is a full copy of the logo clipped to its side.
+ */
+const CUT_TOP = 60;
+const CUT_BOTTOM = 40;
+const LEFT_PIECE = `polygon(0 0, ${CUT_TOP}% 0, ${CUT_BOTTOM}% 100%, 0 100%)`;
+const RIGHT_PIECE = `polygon(${CUT_TOP}% 0, 100% 0, 100% 100%, ${CUT_BOTTOM}% 100%)`;
+/** Angle of that cut from vertical, so the slash lines up with it exactly. */
+const CUT_ANGLE = (Math.atan((CUT_TOP - CUT_BOTTOM) / 100) * 180) / Math.PI;
+
+/** Same-shaped polygons (so they animate) for a left-to-right diagonal wipe. */
+const WIPE_HIDDEN = "polygon(0% 0%, 0% 0%, -25% 100%, -25% 100%)";
+const WIPE_SHOWN = "polygon(0% 0%, 125% 0%, 100% 100%, -25% 100%)";
+
+/** Crisp in-out curve: quick through the middle, with a softened start and stop. */
+const SLICE_EASE = "cubic-bezier(0.7, 0, 0.25, 1)";
+
+const stages = ["logo", "slash", "split", "dark", "exit"] as const;
 type Stage = (typeof stages)[number];
 
 interface ShimmerCell {
@@ -32,14 +52,14 @@ interface ShimmerCell {
 
 /** Scattered grid cells that pulse at their own timing and brightness. */
 const shimmerCells: ShimmerCell[] = [
-  { top: "12%", left: "10%", delay: "1.4s", duration: "2.6s", peak: 0.22 },
-  { top: "22%", left: "72%", delay: "2.3s", duration: "3.4s", peak: 0.3 },
-  { top: "48%", left: "25%", delay: "3.1s", duration: "2.3s", peak: 0.32 },
-  { top: "58%", left: "85%", delay: "1.8s", duration: "3s", peak: 0.25 },
-  { top: "15%", left: "45%", delay: "3.6s", duration: "2.8s", peak: 0.26 },
+  { top: "12%", left: "10%", delay: "0.5s", duration: "1.4s", peak: 0.22 },
+  { top: "22%", left: "72%", delay: "1.1s", duration: "3.4s", peak: 0.3 },
+  { top: "48%", left: "25%", delay: "1.7s", duration: "2.3s", peak: 0.32 },
+  { top: "58%", left: "85%", delay: "0.8s", duration: "3s", peak: 0.25 },
+  { top: "15%", left: "45%", delay: "2.1s", duration: "2.8s", peak: 0.26 },
   { top: "70%", left: "55%", delay: "2.6s", duration: "3.6s", peak: 0.3 },
-  { top: "38%", left: "6%", delay: "3.3s", duration: "2.5s", peak: 0.22 },
-  { top: "82%", left: "20%", delay: "2s", duration: "3.2s", peak: 0.26 },
+  { top: "38%", left: "6%", delay: "1.9s", duration: "2.5s", peak: 0.22 },
+  { top: "82%", left: "20%", delay: "0.9s", duration: "3.2s", peak: 0.26 },
 ];
 
 interface IntroOverlayProps {
@@ -62,6 +82,7 @@ export default function IntroOverlay({ onBeginExit, onFinish }: IntroOverlayProp
 
   useEffect(() => {
     const timers = [
+      setTimeout(() => advance("slash"), SLASH_AT),
       setTimeout(() => advance("split"), SPLIT_AT),
       setTimeout(() => advance("dark"), DARK_AT),
       setTimeout(() => advance("exit"), EXIT_AT),
@@ -158,66 +179,99 @@ export default function IntroOverlay({ onBeginExit, onFinish }: IntroOverlayProp
         />
       </div>
 
-      {/* Photo frame revealed behind the splitting logo */}
+      {/* Photo frame, sliced open from the center as the logo splits */}
       <div
         aria-hidden
-        className={cn(
-          "absolute z-10 h-56 w-[85vw] max-w-md overflow-hidden rounded-sm border-2 border-slate-blue/40 shadow-2xl transition-all delay-150 duration-1000 sm:h-72 md:h-96 md:max-w-2xl",
-          reached("split") ? "scale-100 opacity-100" : "scale-90 opacity-0",
-          reached("dark") && "opacity-0"
-        )}
+        className="absolute z-10 h-56 w-[85vw] max-w-md overflow-hidden rounded-sm border-2 border-slate-blue/40 shadow-2xl sm:h-72 md:h-96 md:max-w-2xl"
+        style={{
+          clipPath: reached("split") ? "inset(0% 0% 0% 0%)" : "inset(50% 0% 50% 0%)",
+          transition: `clip-path 440ms ${SLICE_EASE} 60ms`,
+        }}
       >
-        {introPhotos.map((photo, index) => (
-          <img
-            key={photo.src}
-            src={photo.src}
-            alt=""
-            className="intro-photo absolute inset-0 h-full w-full object-cover"
-            style={{
-              animationDelay: `${PHOTO_START + index * PHOTO_INTERVAL}ms`,
-              zIndex: index,
-            }}
-          />
-        ))}
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-brown/30 to-transparent" />
+        {introPhotos.map((photo, index) => {
+          const delay = `${PHOTO_START + index * PHOTO_INTERVAL}ms`;
+          return (
+            <Fragment key={photo.src}>
+              <div
+                className="intro-photo-slice absolute inset-0"
+                style={
+                  {
+                    animationDelay: delay,
+                    zIndex: index * 2,
+                    "--wipe-hidden": WIPE_HIDDEN,
+                    "--wipe-shown": WIPE_SHOWN,
+                  } as CSSProperties
+                }
+              >
+                <img
+                  src={photo.src}
+                  alt=""
+                  className="intro-photo h-full w-full object-cover"
+                  style={{ animationDelay: delay }}
+                />
+              </div>
+              {/* Bright edge riding the cut; outside the clipped layer so its glow shows */}
+              <span
+                className="intro-cut-glint absolute inset-y-[-20%] w-[3px] bg-white/80 shadow-[0_0_22px_6px_rgba(255,255,255,0.45)]"
+                style={{ animationDelay: delay, zIndex: index * 2 + 1, rotate: "11deg" }}
+              />
+            </Fragment>
+          );
+        })}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brown/30 to-transparent"
+          style={{ zIndex: introPhotos.length * 2 }}
+        />
       </div>
 
-      {/* Logo, rendered as two halves so it can split apart */}
+      {/* Logo, rendered as two clipped halves so it can be sliced apart */}
       <div aria-hidden className="intro-logo-in relative z-20 h-32 w-32 md:h-44 md:w-44">
-        <div
-          className={cn(
-            "absolute inset-y-0 left-0 w-1/2 overflow-hidden transition-all duration-[850ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-            reached("split") && "-translate-x-[34vw] translate-y-[16vh] -rotate-6",
-            reached("dark") && "opacity-0"
-          )}
-        >
-          <img
-            src="/images/logo.png"
-            alt=""
-            className="h-full w-[200%] max-w-none object-contain"
-          />
-        </div>
-        <div
-          className={cn(
-            "absolute inset-y-0 right-0 w-1/2 overflow-hidden transition-all duration-[850ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-            reached("split") && "-translate-y-[16vh] translate-x-[34vw] rotate-6",
-            reached("dark") && "opacity-0"
-          )}
-        >
-          <img
-            src="/images/logo.png"
-            alt=""
-            className="h-full w-[200%] max-w-none -translate-x-1/2 object-contain"
-          />
-        </div>
+        {(
+          [
+            [LEFT_PIECE, "-translate-x-[34vw] translate-y-[22vh] -rotate-[8deg]"],
+            [RIGHT_PIECE, "translate-x-[34vw] -translate-y-[22vh] rotate-[8deg]"],
+          ] as const
+        ).map(([clipPath, splitClasses]) => (
+          <div
+            key={clipPath}
+            className={cn(
+              "absolute inset-0",
+              reached("split") && splitClasses,
+              reached("dark") && "opacity-0"
+            )}
+            style={{
+              clipPath,
+              transition: `translate 640ms ${SLICE_EASE}, rotate 640ms ${SLICE_EASE}, opacity 200ms ease-out`,
+            }}
+          >
+            <img src="/images/logo.png" alt="" className="h-full w-full object-contain" />
+          </div>
+        ))}
+
+        {/* The blade: a streak of light drawn through the logo along the cut */}
+        {/* Outer span tilts to the cut around its center; inner span draws top to bottom */}
+        {reached("slash") && (
+          <span
+            className="pointer-events-none absolute left-1/2 top-[-35%] h-[170%] w-[3px] -translate-x-1/2"
+            style={{ rotate: `${CUT_ANGLE}deg` }}
+          >
+            <span className="intro-slash block h-full w-full bg-white shadow-[0_0_28px_8px_rgba(255,255,255,0.55)]" />
+          </span>
+        )}
       </div>
 
-      {/* Crossfade into the hero's exact background for a seamless handoff */}
+      {/* Quick flash of light the instant the blade connects */}
+      {reached("slash") && (
+        <div className="intro-flash pointer-events-none absolute inset-0 z-[25] bg-white" />
+      )}
+
+      {/* The hero's exact background wipes across on the same diagonal for a seamless handoff */}
       <div
-        className={cn(
-          "pointer-events-none absolute inset-0 z-30 bg-gradient-to-br from-foreground via-foreground to-foreground/95 transition-opacity duration-[800ms]",
-          reached("dark") ? "opacity-100" : "opacity-0"
-        )}
+        className="pointer-events-none absolute inset-0 z-30 bg-gradient-to-br from-foreground via-foreground to-foreground/95"
+        style={{
+          clipPath: reached("dark") ? WIPE_SHOWN : WIPE_HIDDEN,
+          transition: `clip-path 480ms ${SLICE_EASE}`,
+        }}
       />
 
       <button

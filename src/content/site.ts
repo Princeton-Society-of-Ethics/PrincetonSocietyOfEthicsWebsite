@@ -4,6 +4,7 @@
  */
 
 import { isRegistrationOpen } from "./ethicsBowlRegistration";
+import { isVolunteerFormOpen } from "./ethicsBowlVolunteer";
 
 /** Ethics Bowl registration links only appear while registration is open. */
 const registrationOpen = isRegistrationOpen();
@@ -13,6 +14,8 @@ export const siteConfig = {
   shortName: "Princeton Society of Ethics",
   founded: 2023,
   founder: "Joel Ibabao",
+  /** General contact address, used by "Get in touch" buttons. */
+  contactEmail: "ethics@princeton.edu",
   description:
     "Fostering rigorous ethical inquiry and moral reflection within the Princeton community. We seek to cultivate a space where students can wrestle with life's most important questions.",
   links: {
@@ -20,6 +23,27 @@ export const siteConfig = {
     universityCenterForHumanValues: "https://ethics.princeton.edu",
   },
 } as const;
+
+export interface Sponsor {
+  name: string;
+  /** Short line under the name describing who they are. */
+  description: string;
+  href: string;
+}
+
+/** Organizations listed in the home page "Sponsors & partners" section. */
+export const sponsors: Sponsor[] = [
+  {
+    name: "The Marc Sanders Foundation",
+    description: "Supporting public philosophy and the National High School Ethics Bowl",
+    href: "https://www.marcsandersfoundation.org/",
+  },
+  {
+    name: "Parr Center for Ethics",
+    description: "University of North Carolina at Chapel Hill",
+    href: "https://parrcenter.unc.edu/",
+  },
+];
 
 export interface NavItem {
   label: string;
@@ -46,6 +70,9 @@ export const footerNav: { heading: string; items: (NavItem & { external?: boolea
     items: [
       { label: "Join Us", href: "/join" },
       ...(registrationOpen ? [{ label: "Ethics Bowl Registration", href: "/register" }] : []),
+      ...(isVolunteerFormOpen()
+        ? [{ label: "Volunteer at the Ethics Bowl", href: "/volunteer" }]
+        : []),
       { label: "Instagram", href: siteConfig.links.instagram, external: true },
     ],
   },

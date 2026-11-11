@@ -93,17 +93,66 @@
 }
 
 /* Intro overlay (IntroOverlay.tsx) — element delays are set inline from its timeline */
+
+/* Each photo slices in on a diagonal; the shapes come from CSS variables set
+   inline so they match the overlay's other wipes. */
+@keyframes intro-photo-slice {
+  from {
+    clip-path: var(--wipe-hidden);
+  }
+  to {
+    clip-path: var(--wipe-shown);
+  }
+}
+
+/* Slight push-in under each cut so the frame never sits still */
 @keyframes intro-photo-pan {
   from {
-    opacity: 0;
-    transform: scale(1.08);
+    transform: scale(1.14);
   }
-  20% {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Glint that rides the leading edge of each photo's cut, left to right */
+@keyframes intro-cut-glint {
+  from {
+    left: -10%;
+    opacity: 1;
+  }
+  85% {
     opacity: 1;
   }
   to {
+    left: 110%;
+    opacity: 0;
+  }
+}
+
+/* The blade drawing through the logo from top to bottom, then fading */
+@keyframes intro-slash {
+  0% {
+    transform: scaleY(0);
     opacity: 1;
-    transform: scale(1);
+  }
+  45% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1) scaleX(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes intro-flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.2;
   }
 }
 
@@ -151,8 +200,25 @@
   }
 }
 
+.intro-photo-slice {
+  animation: intro-photo-slice 420ms cubic-bezier(0.7, 0, 0.25, 1) both;
+}
+
 .intro-photo {
-  animation: intro-photo-pan 1.4s ease-out both;
+  animation: intro-photo-pan 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.intro-cut-glint {
+  animation: intro-cut-glint 420ms cubic-bezier(0.7, 0, 0.25, 1) both;
+}
+
+.intro-slash {
+  transform-origin: top center;
+  animation: intro-slash 360ms cubic-bezier(0.55, 0, 0.35, 1) both;
+}
+
+.intro-flash {
+  animation: intro-flash 260ms ease-out both;
 }
 
 .intro-bg-drift {
@@ -172,7 +238,7 @@
 }
 
 .intro-logo-in {
-  animation: intro-logo-in 0.8s ease-out both;
+  animation: intro-logo-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Letter-by-letter reveal (LetterReveal.tsx) */

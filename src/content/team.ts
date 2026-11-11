@@ -1,6 +1,8 @@
 export interface TeamMember {
   name: string;
   role: string;
+  /** Optional line under the role, e.g. "PhD student in Philosophy at Princeton". */
+  affiliation?: string;
   /** Public LinkedIn profile URL. Omit or set null when unknown. */
   linkedinUrl?: string | null;
   /** University faculty profile URL (e.g. a department people page). */
@@ -87,6 +89,9 @@ export const teamGroups: TeamGroup[] = [
         imageSrc: "/images/team/maribel-crespo.png",
         imageAlt: "Portrait of Maribel Crespo",
       },
+      member("Sol Braver", "Treasurer", "sol-braver", {
+        linkedinUrl: "https://www.linkedin.com/in/sol-braver-a1b2b13a6",
+      }),
     ],
   },
   {
@@ -99,6 +104,11 @@ export const teamGroups: TeamGroup[] = [
           member("Navneeth Gurachar", "Coach", "navneeth-gurachar", {
             linkedinUrl: "https://www.linkedin.com/in/navneeth-gurachar-6ba777189/",
           }),
+          {
+            name: "David North",
+            role: "Coach",
+            affiliation: "PhD student in Philosophy at Princeton",
+          },
           member("Tenzin Namgyal", "Consultant", "tenzin-namgyal", {
             linkedinUrl: "https://www.linkedin.com/in/tenzin-namgyal",
           }),
@@ -124,6 +134,17 @@ export const teamGroups: TeamGroup[] = [
           }),
         ],
       },
+    ],
+  },
+  {
+    eyebrow: "Regional competition",
+    title: "NJ High School Ethics Bowl",
+    description: "The organizers of the New Jersey Regional High School Ethics Bowl at Princeton.",
+    members: [
+      member("Raye Ploeger", "Co-director", "raye-ploeger", {
+        affiliation: "PhD student in Philosophy at UNC Chapel Hill; Visiting Scholar at Princeton",
+      }),
+      member("Michael Iofin", "Co-director", "michael-iofin"),
     ],
   },
   {

@@ -1,31 +1,53 @@
 import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock } from "lucide-react";
 import { flushSync } from "react-dom";
 import { Link } from "react-router-dom";
 import PageHero, { Accent } from "@/components/sections/PageHero";
+import EventMeta from "@/components/sections/registration/EventMeta";
 import SchoolPicker from "@/components/sections/registration/SchoolPicker";
+import {
+  CheckOption,
+  ConfirmationCheck,
+  EmailSuggestion,
+  FormBackdrop,
+  FormField,
+  FormStep,
+  PreviewBanner,
+  ReviewSummary,
+  StepProgress,
+  fieldGlow,
+  type FormStepInfo,
+} from "@/components/sections/registration/StepForm";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Label from "@/components/ui/Label";
 import Textarea from "@/components/ui/Textarea";
 import {
   ethicsBowlRegistration,
   isRegistrationOpen,
   registrationDeadlineLabel,
 } from "@/content/ethicsBowlRegistration";
+import { isVolunteerFormOpen } from "@/content/ethicsBowlVolunteer";
 import { submitTeamRegistration } from "@/lib/api/ethicsBowl";
+import { isPreviewMode } from "@/lib/preview";
 import { cn } from "@/lib/utils";
-import { emailError, emailSuggestion, formatPhone, phoneError } from "@/lib/validation";
+import { emailError, formatPhone, phoneError } from "@/lib/validation";
 
 type FormStatus =
   | { kind: "idle" }
   | { kind: "submitting" }
-  | { kind: "submitted"; schoolName: string; registrationId: string | null }
+  | {
+      kind: "submitted";
+      schoolName: string;
+      /** False when the coach typed in a school that isn't in the directory. */
+      schoolVerified: boolean;
+      registrationId: string | null;
+    }
   | { kind: "error"; message: string };
 
-const { season, eventName, event, contactEmail, roster } = ethicsBowlRegistration;
+const { season, eventName, event, contactEmail, roster, unlistedSchoolEmail } =
+  ethicsBowlRegistration;
 
-const STEPS = [
+const STEPS: FormStepInfo[] = [
   {
     label: "School & Coach",
     title: "School and coach",
@@ -49,9 +71,6 @@ const STEPS = [
   },
 ];
 const LAST_STEP = STEPS.length - 1;
-
-/** Soft orange halo on focus, added to every input and textarea. */
-const fieldGlow = "transition-shadow focus:ring-4 focus:ring-primary/20";
 
 /** Number of non-blank lines, i.e. students listed in the roster box. */
 function countRosterLines(text: string): number {
@@ -116,12 +135,14 @@ function ClosedNotice() {
 
 function RegistrationForm() {
   const [status, setStatus] = useState<FormStatus>({ kind: "idle" });
+  /** Local-only walkthrough with no validation and no submission (see isPreviewMode). */
+  const preview = isPreviewMode();
   /** The step currently shown. */
   const [step, setStep] = useState(0);
   /** False while the welcome screen is showing, before the first step. */
   const [started, setStarted] = useState(false);
   /** The furthest step reached; steps beyond it can't be opened yet. */
-  const [unlocked, setUnlocked] = useState(0);
+  const [unlocked, setUnlocked] = useState(preview ? LAST_STEP : 0);
   /** Snapshot of every answer, for the roster count and the review step. */
   const [values, setValues] = useState<Record<string, string>>({});
   const sectionRef = useRef<HTMLElement>(null);
@@ -192,7 +213,7 @@ function RegistrationForm() {
   }
 
   function continueFrom(index: number) {
-    const invalid = firstInvalidField(index);
+    const invalid = preview ? undefined : firstInvalidField(index);
     if (invalid) {
       // Surface inline messages for every bad contact field in this step, then point at the first.
       stepRefs.current[index]
@@ -211,6 +232,20 @@ function RegistrationForm() {
     // Pressing Enter on an earlier step means "Continue", not "Submit".
     if (step < LAST_STEP) {
       continueFrom(step);
+      return;
+    }
+
+    // Preview: jump straight to the confirmation screen; nothing is sent. Uses
+    // whatever school was entered, so the "not listed" version can be previewed.
+    if (preview) {
+      const data = new FormData(event.currentTarget);
+      setStatus({
+        kind: "submitted",
+        schoolName: String(data.get("schoolName") ?? "").trim() || "Preview High School",
+        schoolVerified: data.get("schoolVerified") !== "No",
+        registrationId: "NJHSEB-27-0000",
+      });
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
@@ -246,6 +281,7 @@ function RegistrationForm() {
       setStatus({
         kind: "submitted",
         schoolName: field("schoolName"),
+        schoolVerified: field("schoolVerified") === "Yes",
         registrationId: result.registrationId,
       });
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -255,6 +291,7 @@ function RegistrationForm() {
   }
 
   const stepProps = (index: number) => ({
+    steps: STEPS,
     index,
     isActive: step === index,
     fieldsetRef: (el: HTMLFieldSetElement | null) => {
@@ -270,22 +307,33 @@ function RegistrationForm() {
       ref={sectionRef}
       className="relative scroll-mt-24 overflow-hidden border-t border-border bg-background py-20 animate-fade-in-up md:py-24"
     >
-      {started && status.kind !== "submitted" && <RegistrationBackdrop />}
+      {started && status.kind !== "submitted" && <FormBackdrop id="registration-grid" />}
       <div className="container relative max-w-2xl">
         {status.kind === "submitted" ? (
-          <Confirmation schoolName={status.schoolName} registrationId={status.registrationId} />
+          <Confirmation
+            schoolName={status.schoolName}
+            schoolVerified={status.schoolVerified}
+            registrationId={status.registrationId}
+          />
         ) : (
           <>
             {!started && <Intro onStart={start} />}
 
             {/* Hidden rather than unmounted on the intro, so typed answers are kept */}
             <div className={started ? undefined : "hidden"}>
-              <Progress step={step} unlocked={unlocked} onSelect={goTo} />
+              {preview && <PreviewBanner />}
+              <StepProgress
+                steps={STEPS}
+                step={step}
+                unlocked={unlocked}
+                onSelect={goTo}
+                label="Registration progress"
+              />
 
               <form ref={formRef} noValidate onSubmit={handleSubmit} onChange={handleFormChange}>
-                <Step {...stepProps(0)}>
+                <FormStep {...stepProps(0)}>
                   <SchoolPicker onChange={handleFormChange} inputClassName={fieldGlow} />
-                  <Field
+                  <FormField
                     id="coachName"
                     label="Coach"
                     hint="The coach responsible for your team, who must be present throughout the event."
@@ -299,9 +347,9 @@ function RegistrationForm() {
                       className={cn("h-12", fieldGlow)}
                       required
                     />
-                  </Field>
+                  </FormField>
                   <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-                    <Field
+                    <FormField
                       id="coachPhone"
                       label="Coach's cell phone"
                       error={fieldErrors.coachPhone}
@@ -325,8 +373,8 @@ function RegistrationForm() {
                         className={cn("h-12", fieldGlow)}
                         required
                       />
-                    </Field>
-                    <Field id="coachEmail" label="Coach's email" error={fieldErrors.coachEmail}>
+                    </FormField>
+                    <FormField id="coachEmail" label="Coach's email" error={fieldErrors.coachEmail}>
                       <Input
                         id="coachEmail"
                         name="coachEmail"
@@ -355,12 +403,12 @@ function RegistrationForm() {
                           handleFormChange();
                         }}
                       />
-                    </Field>
+                    </FormField>
                   </div>
-                </Step>
+                </FormStep>
 
-                <Step {...stepProps(1)}>
-                  <Field
+                <FormStep {...stepProps(1)}>
+                  <FormField
                     id="roster"
                     label="Team roster"
                     hint={`One student per line, with name and grade level. Register ${roster.min} to ${roster.max} students; no more than ${roster.maxPerMatch} compete in a single match.`}
@@ -388,8 +436,8 @@ function RegistrationForm() {
                         rosterCount < roster.min &&
                         ` · at least ${roster.min} needed`}
                     </p>
-                  </Field>
-                  <Field
+                  </FormField>
+                  <FormField
                     id="dietaryRestrictions"
                     label="Dietary restrictions or allergies"
                     hint={`For students, coaches, and guests: each person's name and restriction. If none, enter "None."`}
@@ -403,8 +451,8 @@ function RegistrationForm() {
                       className={fieldGlow}
                       required
                     />
-                  </Field>
-                  <Field
+                  </FormField>
+                  <FormField
                     id="additionalGuests"
                     label="Accompanying guests"
                     hint={`Any additional students, staff, faculty, or other guests: each person's name and role. If none, enter "None."`}
@@ -418,11 +466,11 @@ function RegistrationForm() {
                       className={fieldGlow}
                       required
                     />
-                  </Field>
-                </Step>
+                  </FormField>
+                </FormStep>
 
-                <Step {...stepProps(2)}>
-                  <Field
+                <FormStep {...stepProps(2)}>
+                  <FormField
                     id="additionalTeams"
                     label="Additional team rosters"
                     hint={`Label each team and list each student's name and grade level. If none, enter "None."`}
@@ -438,27 +486,15 @@ function RegistrationForm() {
                       className={fieldGlow}
                       required
                     />
-                  </Field>
-                </Step>
+                  </FormField>
+                </FormStep>
 
-                <Step {...stepProps(3)}>
+                <FormStep {...stepProps(3)}>
                   <Review values={values} onEdit={goTo} />
 
-                  <label
-                    htmlFor="confirmed"
-                    className="flex cursor-pointer items-start gap-4 rounded-sm border border-border bg-card p-5 transition-colors hover:border-primary/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                  >
-                    <input
-                      id="confirmed"
-                      name="confirmed"
-                      type="checkbox"
-                      required
-                      className="mt-0.5 h-5 w-5 flex-shrink-0 cursor-pointer accent-primary"
-                    />
-                    <span className="leading-relaxed text-foreground">
-                      I confirm that my team will participate in the {season} {eventName}.
-                    </span>
-                  </label>
+                  <CheckOption id="confirmed" name="confirmed" required>
+                    I confirm that my team will participate in the {season} {eventName}.
+                  </CheckOption>
 
                   <Signature
                     name={values.confirmed === "on" ? (values.coachName ?? "").trim() : ""}
@@ -469,7 +505,7 @@ function RegistrationForm() {
                       {status.message}
                     </p>
                   )}
-                </Step>
+                </FormStep>
 
                 {/* Honeypot: hidden from people and screen readers; bots tend to fill it. */}
                 <div className="absolute -left-[9999px]" aria-hidden>
@@ -536,13 +572,6 @@ function RegistrationForm() {
 
 /** Welcome screen: what the event is and what to have ready before starting. */
 function Intro({ onStart }: { onStart: () => void }) {
-  // "Saturday, February 6, 2027" → "February 6, 2027" with "Saturday" underneath
-  const [weekday, calendarDate] = event.date.includes(",")
-    ? [
-        event.date.slice(0, event.date.indexOf(",")),
-        event.date.slice(event.date.indexOf(",") + 1).trim(),
-      ]
-    : ["", event.date];
   const facts = [
     { value: `${roster.min}–${roster.max}`, label: "Students per team" },
     { value: String(roster.maxPerMatch), label: "Compete per match" },
@@ -568,14 +597,7 @@ function Intro({ onStart }: { onStart: () => void }) {
         are judged on careful reasoning, respect for other perspectives, and thoughtful dialogue.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <EventDetail icon={CalendarDays} primary={calendarDate}>
-          {[weekday, event.dateIsTentative && "Tentative date"].filter(Boolean).join(" · ")}
-        </EventDetail>
-        <EventDetail icon={MapPin} primary={event.venue}>
-          {event.place}
-        </EventDetail>
-      </div>
+      <EventMeta className="mt-8" />
 
       <dl className="mt-12 grid grid-cols-3 divide-x divide-border border-y border-border">
         {facts.map((fact) => (
@@ -615,182 +637,17 @@ function Intro({ onStart }: { onStart: () => void }) {
           />
         </Button>
       </div>
-    </div>
-  );
-}
 
-function EventDetail({
-  icon: Icon,
-  primary,
-  children,
-}: {
-  icon: typeof MapPin;
-  primary: string;
-  children: ReactNode;
-}) {
-  return (
-    <p className="flex items-center gap-4 rounded-sm border border-border bg-card px-5 py-4">
-      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-        <Icon className="h-5 w-5 text-primary" aria-hidden />
-      </span>
-      <span>
-        <span className="block font-medium text-foreground">{primary}</span>
-        <span className="block text-sm text-muted-foreground">{children}</span>
-      </span>
-    </p>
-  );
-}
-
-/**
- * Decorative layer behind the form: the home hero's faint grid, fading out
- * down the page.
- */
-function RegistrationBackdrop() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden>
-      <svg className="absolute inset-0 h-full w-full text-foreground/[0.09] [mask-image:radial-gradient(ellipse_90%_70%_at_50%_0%,black_30%,transparent)]">
-        <defs>
-          <pattern id="registration-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#registration-grid)" />
-      </svg>
-    </div>
-  );
-}
-
-interface ProgressProps {
-  step: number;
-  unlocked: number;
-  onSelect: (index: number) => void;
-}
-
-/** Segmented progress bar; steps already reached can be revisited. */
-function Progress({ step, unlocked, onSelect }: ProgressProps) {
-  return (
-    <nav aria-label="Registration progress" className="mb-16">
-      <ol className="grid grid-cols-4 gap-2 sm:gap-3">
-        {STEPS.map((item, index) => {
-          const isCurrent = index === step;
-          const isReached = index <= unlocked;
-          return (
-            <li key={item.label}>
-              <button
-                type="button"
-                onClick={() => onSelect(index)}
-                disabled={!isReached || isCurrent}
-                aria-current={isCurrent ? "step" : undefined}
-                className="group w-full text-left disabled:cursor-default enabled:cursor-pointer"
-              >
-                <span className="block h-1 overflow-hidden rounded-full bg-border">
-                  <span
-                    className={cn(
-                      "block h-full rounded-full bg-primary transition-[width] duration-700 ease-out",
-                      isReached ? "w-full" : "w-0"
-                    )}
-                  />
-                </span>
-                <span
-                  className={cn(
-                    "mt-3 hidden text-xs font-medium uppercase tracking-wider transition-colors sm:block",
-                    isCurrent && "text-foreground",
-                    !isCurrent && isReached && "text-muted-foreground group-hover:text-primary",
-                    !isReached && "text-muted-foreground/50"
-                  )}
-                >
-                  {item.label}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
-  );
-}
-
-interface StepProps {
-  index: number;
-  isActive: boolean;
-  fieldsetRef: (el: HTMLFieldSetElement | null) => void;
-  children: ReactNode;
-}
-
-/** One step of the form. Inactive steps stay mounted (hidden) so answers are kept. */
-function Step({ index, isActive, fieldsetRef, children }: StepProps) {
-  const { title, description } = STEPS[index];
-  return (
-    <fieldset
-      ref={fieldsetRef}
-      aria-labelledby={`step-${index}-title`}
-      className={isActive ? "animate-fade-in-up" : "hidden"}
-    >
-      <span className="mb-3 block font-serif text-sm italic text-primary">
-        Step {index + 1} of {STEPS.length}
-      </span>
-      <h2
-        id={`step-${index}-title`}
-        className="font-serif text-4xl font-bold text-foreground md:text-5xl"
-      >
-        {title}
-      </h2>
-      <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{description}</p>
-      <div className="mt-12 space-y-8">{children}</div>
-    </fieldset>
-  );
-}
-
-interface FieldProps {
-  id: string;
-  label: string;
-  hint?: string;
-  /** Inline validation message shown under the field. */
-  error?: string;
-  children: ReactNode;
-}
-
-function Field({ id, label, hint, error, children }: FieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      {hint && (
-        <p id={`${id}-hint`} className="text-sm leading-relaxed text-muted-foreground">
-          {hint}
-        </p>
-      )}
-      {children}
-      {error && (
-        <p id={`${id}-error`} className="text-sm text-red-700">
-          {error}
+      {isVolunteerFormOpen() && (
+        <p className="mt-10 text-sm text-muted-foreground">
+          Not a coach?{" "}
+          <Link to="/volunteer" className="font-medium text-primary hover:underline">
+            Volunteer as a judge, moderator, or assistant
+          </Link>
+          .
         </p>
       )}
     </div>
-  );
-}
-
-/** "Did you mean …?" for common email domain typos, e.g. gmial.com. */
-function EmailSuggestion({
-  value,
-  onAccept,
-}: {
-  value: string;
-  onAccept: (suggestion: string) => void;
-}) {
-  const suggestion = emailSuggestion(value);
-  if (!suggestion) return null;
-  return (
-    <p className="text-sm text-muted-foreground">
-      Did you mean{" "}
-      <button
-        type="button"
-        onClick={() => onAccept(suggestion)}
-        className="cursor-pointer font-medium text-primary hover:underline"
-      >
-        {suggestion}
-      </button>
-      ?
-    </p>
   );
 }
 
@@ -833,36 +690,7 @@ function Review({
     { step: 2, rows: [["Additional teams", get("additionalTeams")]] },
   ];
 
-  return (
-    <div className="divide-y divide-border border-y border-border">
-      {groups.map((group) => (
-        <div key={group.step} className="py-6">
-          <div className="mb-4 flex items-baseline justify-between">
-            <h3 className="font-serif text-lg font-bold text-foreground">
-              {STEPS[group.step].label}
-            </h3>
-            <button
-              type="button"
-              onClick={() => onEdit(group.step)}
-              className="cursor-pointer text-sm font-medium text-primary hover:underline"
-            >
-              Edit
-            </button>
-          </div>
-          <dl className="space-y-3">
-            {group.rows.map(([term, detail]) => (
-              <div key={term} className="grid grid-cols-1 gap-1 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                <dt className="text-sm text-muted-foreground">{term}</dt>
-                <dd className="min-w-0 whitespace-pre-line break-words text-sm text-foreground">
-                  {detail}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      ))}
-    </div>
-  );
+  return <ReviewSummary steps={STEPS} groups={groups} onEdit={onEdit} />;
 }
 
 /** "Jane Smith, senior" lines rendered as small name tags with the grade beside each name. */
@@ -925,26 +753,16 @@ function Signature({ name }: { name: string }) {
 
 function Confirmation({
   schoolName,
+  schoolVerified,
   registrationId,
 }: {
   schoolName: string;
+  schoolVerified: boolean;
   registrationId: string | null;
 }) {
   return (
     <div className="py-8 text-center animate-fade-in-up">
-      <div className="intro-logo-in mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-8 ring-primary/5">
-        <svg viewBox="0 0 24 24" className="h-9 w-9 text-primary" aria-hidden>
-          <path
-            d="M5 12.5l4.5 4.5L19 7.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.25"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="animate-draw"
-          />
-        </svg>
-      </div>
+      <ConfirmationCheck />
       <span className="mb-3 block font-serif text-sm italic text-primary">You're registered</span>
       <h2 className="mb-6 font-serif text-4xl font-bold text-foreground md:text-5xl">
         Thank you{schoolName && `, ${schoolName}`}
@@ -955,20 +773,34 @@ function Confirmation({
         on {event.date} at {event.venue}, {event.place}. The organizers will follow up with your
         coach by email with event details.
       </p>
-      {registrationId && (
-        <p className="mx-auto mt-8 inline-flex flex-col items-center rounded-sm border border-border bg-card px-6 py-3">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground">
-            Registration number
-          </span>
-          <span className="mt-1 text-xl font-semibold tracking-wide tabular-nums text-foreground">
-            {registrationId}
-          </span>
+      {!schoolVerified && (
+        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
+          Since your school isn't in our New Jersey school list, please also email{" "}
+          <a
+            href={`mailto:${unlistedSchoolEmail}?subject=${encodeURIComponent("Ethics Bowl registration: school not listed")}`}
+            className="font-medium text-primary hover:underline"
+          >
+            {unlistedSchoolEmail}
+          </a>{" "}
+          so the organizers can confirm it, if you haven't already.
         </p>
       )}
-      <div className="mt-10" />
-      <Link to="/initiatives">
-        <Button variant="outline" className="text-foreground">
+      {registrationId && (
+        <p className="mt-6 text-sm text-muted-foreground">
+          Your registration number is{" "}
+          <span className="font-semibold tracking-wide tabular-nums text-foreground">
+            {registrationId}
+          </span>
+          . Keep it for your records.
+        </p>
+      )}
+      <Link to="/initiatives" className="mt-10 inline-block">
+        <Button size="lg" className="group px-10">
           Explore Our Initiatives
+          <ArrowRight
+            className="h-5 w-5 transition-transform group-hover:translate-x-1"
+            aria-hidden
+          />
         </Button>
       </Link>
     </div>

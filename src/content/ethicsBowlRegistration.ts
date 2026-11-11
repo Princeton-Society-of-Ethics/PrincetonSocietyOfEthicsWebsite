@@ -30,6 +30,7 @@ export const ethicsBowlRegistration = {
   event: {
     date: "Saturday, February 6, 2027",
     dateIsTentative: true,
+    time: "9:00 AM to 5:00 PM",
     venue: "Friend Center",
     place: "Princeton University",
   },

@@ -84,3 +84,63 @@ export async function submitTeamRegistration({
     };
   }
 }
+
+export interface VolunteerRegistration {
+  /** Comma-separated, e.g. "Judge, Moderator". */
+  roles: string;
+  multipleRoles: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  fullDay: string;
+  /** Only when not available for the full day. */
+  availableHours: string;
+  priorExperience: string;
+  experienceDetails: string;
+  needs: string;
+  /** The chosen option, or "Other: …" with what they typed. */
+  heardFrom: string;
+  comments: string;
+  /** Hidden honeypot field; real people leave it empty. */
+  website: string;
+  startedAt: Date | null;
+}
+
+/**
+ * Submit a volunteer sign-up. It goes to the same Apps Script web app as team
+ * registrations; `formType: "volunteer"` sends it to the Volunteers tab.
+ */
+export async function submitVolunteerRegistration({
+  startedAt,
+  ...volunteer
+}: VolunteerRegistration): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const { submitUrl, season } = ethicsBowlRegistration;
+  const reachOut = "please email us at ethics@princeton.edu";
+
+  if (!submitUrl) {
+    return {
+      ok: false,
+      reason: `Online volunteer sign-up isn't connected yet. To volunteer, ${reachOut}.`,
+    };
+  }
+
+  try {
+    const response = await fetch(submitUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        formType: "volunteer",
+        ...volunteer,
+        season,
+        ...submissionMetadata(startedAt),
+      }),
+    });
+    const result = (await response.json()) as { ok?: boolean };
+    if (!response.ok || !result.ok) throw new Error("Volunteer sign-up was not saved");
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      reason: `Something went wrong submitting your sign-up. Please try again, or ${reachOut}.`,
+    };
+  }
+}

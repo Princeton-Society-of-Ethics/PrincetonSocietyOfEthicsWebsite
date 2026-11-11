@@ -24,13 +24,29 @@ function ProfileLink({ href, label, icon: Icon }: ProfileLinkProps) {
   );
 }
 
+/** Stand-in portrait for members without a photo: the club logo on a soft orange wash. */
+function LogoPlaceholder() {
+  return (
+    <span
+      aria-hidden
+      className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/15 via-primary/[0.06] to-background"
+    >
+      <img
+        src="/images/logo.png"
+        alt=""
+        className="h-[62%] w-[62%] object-contain opacity-80 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100"
+      />
+    </span>
+  );
+}
+
 interface TeamMemberCardProps {
   member: TeamMember;
   /** Larger portrait styling for faculty advisors. */
   size?: "default" | "large";
 }
 
-/** Circular portrait (or initial placeholder), name, role, and optional profile links. */
+/** Circular portrait (or club logo placeholder), name, role, and optional profile links. */
 export default function TeamMemberCard({ member, size = "default" }: TeamMemberCardProps) {
   const large = size === "large";
 
@@ -56,9 +72,7 @@ export default function TeamMemberCard({ member, size = "default" }: TeamMemberC
             decoding="async"
           />
         ) : (
-          <span className="text-4xl font-semibold text-muted-foreground/85 transition-colors duration-300 group-hover:text-primary sm:text-5xl">
-            {member.name.charAt(0)}
-          </span>
+          <LogoPlaceholder />
         )}
       </div>
 
@@ -73,6 +87,9 @@ export default function TeamMemberCard({ member, size = "default" }: TeamMemberC
       <p className="mt-1.5 text-sm leading-snug text-muted-foreground transition-colors duration-300 group-hover:text-primary/75">
         {member.role}
       </p>
+      {member.affiliation && (
+        <p className="mt-1 text-xs leading-snug text-muted-foreground/80">{member.affiliation}</p>
+      )}
 
       {member.facultyPageUrl && (
         <ProfileLink href={member.facultyPageUrl} label="Faculty Page" icon={GraduationCap} />
