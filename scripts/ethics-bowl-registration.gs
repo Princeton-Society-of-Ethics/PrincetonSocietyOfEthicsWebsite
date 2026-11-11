@@ -1,8 +1,11 @@
 /**
- * NJ High School Ethics Bowl: team registration receiver (Google Apps Script).
+ * NJ High School Ethics Bowl: team registration and volunteer sign-up
+ * receiver (Google Apps Script).
  *
- * The website's /register form POSTs each registration here, and this script
- * appends it as a row in the Google Sheet it is attached to.
+ * The website's /register form POSTs each team registration here, and this
+ * script appends it as a row in the Google Sheet it is attached to. The
+ * /volunteer form posts here too (marked formType: "volunteer"); those rows go
+ * to a separate "Volunteers" tab.
  *
  * ONE-TIME SETUP (about 5 minutes)
  *   1. Create a Google Sheet, e.g. "NJHSEB Registrations 2026–2027".
@@ -15,7 +18,8 @@
  *      app is unverified; choose Advanced → Go to project).
  *   4. Copy the Web app URL (ends in /exec) into `submitUrl` in
  *      src/content/ethicsBowlRegistration.ts, then commit and deploy the site.
- *   5. Test: open the /exec URL in a browser and you should see {"ok":true,...}.
+ *   5. Test: open the /exec URL in a browser and you should see {"ok":true,...}
+ *      including "forms":["team","volunteer"].
  *      Then submit a test registration on the site and delete its row.
  *
  * If you edit this script later, publish the change with Deploy → Manage
@@ -27,8 +31,9 @@
  * update `submitUrl`).
  */
 
-/** Tab the rows are written to; created automatically if it doesn't exist. */
+/** Tabs the rows are written to; created automatically if they don't exist. */
 const SHEET_NAME = "Registrations";
+const VOLUNTEER_SHEET_NAME = "Volunteers";
 
 /**
  * Optional: comma-separated addresses to email whenever a team registers,
@@ -83,9 +88,52 @@ const REQUIRED_KEYS = [
   "additionalTeams",
 ];
 
+/** Volunteer tab columns, in the same [header, key] form as COLUMNS. */
+const VOLUNTEER_COLUMNS = [
+  ["Volunteer ID", "volunteerId"],
+  ["Submitted At (ET)", "submittedAt"],
+  ["Season", "season"],
+  ["Roles", "roles"],
+  ["Willing to Serve in More Than One Role", "multipleRoles"],
+  ["Full Name", "fullName"],
+  ["Email", "email"],
+  ["Cell Phone", "phone"],
+  ["Available Full Day", "fullDay"],
+  ["Available Hours", "availableHours"],
+  ["Prior Experience", "priorExperience"],
+  ["Experience Details", "experienceDetails"],
+  ["Preferences / Accommodations / Needs", "needs"],
+  ["Heard About It From", "heardFrom"],
+  ["Comments or Questions", "comments"],
+  // Context collected automatically by the website
+  ["Local Time", "clientLocalTime"],
+  ["Time Zone", "clientTimeZone"],
+  ["Time to Complete", "completionTime"],
+  ["Came From", "referrer"],
+  ["Form Page", "pageUrl"],
+  ["Device", "device"],
+  ["User Agent", "userAgent"],
+];
+
+const VOLUNTEER_REQUIRED_KEYS = [
+  "roles",
+  "multipleRoles",
+  "fullName",
+  "email",
+  "phone",
+  "fullDay",
+  "priorExperience",
+  "heardFrom",
+];
+
 /** Health check: visiting the /exec URL in a browser shows that it's live. */
 function doGet() {
-  return json({ ok: true, status: "Ethics Bowl registration endpoint is live." });
+  return json({
+    ok: true,
+    status: "Ethics Bowl registration endpoint is live.",
+    // Lets you confirm which version is deployed: older versions only took team registrations.
+    forms: ["team", "volunteer"],
+  });
 }
 
 function doPost(e) {
@@ -95,6 +143,8 @@ function doPost(e) {
 
     // Honeypot: bots fill in the hidden "website" field. Pretend it worked.
     if (data.website) return json({ ok: true });
+
+    if (data.formType === "volunteer") return saveVolunteer(data, lock);
 
     const missing = REQUIRED_KEYS.filter((key) => !String(data[key] || "").trim());
     if (missing.length > 0 || data.confirmed !== true) {
@@ -106,7 +156,7 @@ function doPost(e) {
     }
 
     lock.waitLock(10000);
-    const sheet = getSheet();
+    const sheet = getSheet(SHEET_NAME, COLUMNS);
     const record = buildRecord(data, nextRegistrationId(data.season), new Date());
     sheet.appendRow(COLUMNS.map(([, key]) => record[key]));
     lock.releaseLock();
@@ -119,6 +169,37 @@ function doPost(e) {
   } finally {
     if (lock.hasLock()) lock.releaseLock();
   }
+}
+
+/** Validate and append one volunteer sign-up to the Volunteers tab. */
+function saveVolunteer(data, lock) {
+  const missing = VOLUNTEER_REQUIRED_KEYS.filter((key) => !String(data[key] || "").trim());
+  if (data.fullDay === "No" && !String(data.availableHours || "").trim()) {
+    missing.push("availableHours");
+  }
+  if (missing.length > 0) {
+    return json({ ok: false, error: "Missing required fields: " + missing.join(", ") });
+  }
+  if (!isValidPhone(data.phone) || !isValidEmail(data.email)) {
+    return json({ ok: false, error: "Invalid phone number or email address." });
+  }
+
+  lock.waitLock(10000);
+  const sheet = getSheet(VOLUNTEER_SHEET_NAME, VOLUNTEER_COLUMNS);
+  const now = new Date();
+  const record = {};
+  VOLUNTEER_COLUMNS.forEach(([, key]) => (record[key] = clean(data[key])));
+  record.volunteerId = nextId("volunteerCounter", "VOL", data.season);
+  record.submittedAt = Utilities.formatDate(now, TIME_ZONE, "yyyy-MM-dd HH:mm:ss z");
+  record.clientLocalTime = localTime(data.clientSubmittedAt, data.clientTimeZone);
+  record.completionTime = duration(data.completionSeconds);
+  record.referrer = clean(data.referrer) || "(direct link or bookmark)";
+  record.device = describeDevice(String(data.userAgent || ""));
+  sheet.appendRow(VOLUNTEER_COLUMNS.map(([, key]) => record[key]));
+  lock.releaseLock();
+
+  notifyVolunteer(record);
+  return json({ ok: true, id: record.volunteerId });
 }
 
 /** The submitted answers, cleaned, plus the values computed on the server. */
@@ -144,13 +225,18 @@ function buildRecord(data, registrationId, now) {
  * even if rows are deleted (it's stored in the script's properties).
  */
 function nextRegistrationId(season) {
+  return nextId("registrationCounter", "NJHSEB", season);
+}
+
+/** "<prefix>-27-0001", from a never-repeating counter kept per season. */
+function nextId(counterName, prefix, season) {
   const years = String(season || "").match(/\d{4}/g);
   const yy = years ? years[years.length - 1].slice(-2) : "00";
   const properties = PropertiesService.getScriptProperties();
-  const counterKey = "registrationCounter-" + yy;
+  const counterKey = counterName + "-" + yy;
   const next = Number(properties.getProperty(counterKey) || 0) + 1;
   properties.setProperty(counterKey, String(next));
-  return "NJHSEB-" + yy + "-" + String(next).padStart(4, "0");
+  return prefix + "-" + yy + "-" + String(next).padStart(4, "0");
 }
 
 /** The coach's clock time when they submitted, in their own time zone. */
@@ -215,12 +301,12 @@ function isValidEmail(value) {
   );
 }
 
-function getSheet() {
+function getSheet(name, columns) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
-  if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME);
+  let sheet = spreadsheet.getSheetByName(name);
+  if (!sheet) sheet = spreadsheet.insertSheet(name);
   if (sheet.getLastRow() === 0) {
-    const headers = COLUMNS.map(([header]) => header);
+    const headers = columns.map(([header]) => header);
     sheet.appendRow(headers);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
     sheet.setFrozenRows(1);
@@ -252,6 +338,23 @@ function notify(record) {
     });
   } catch (err) {
     // The row is already saved; a failed email shouldn't fail the registration.
+    console.error(err);
+  }
+}
+
+function notifyVolunteer(record) {
+  if (!NOTIFY_EMAILS) return;
+  try {
+    const body = VOLUNTEER_COLUMNS.map(([header, key]) => header + ":\n" + record[key] + "\n").join(
+      "\n"
+    );
+    MailApp.sendEmail({
+      to: NOTIFY_EMAILS,
+      subject: "New Ethics Bowl volunteer: " + record.fullName + " (" + record.roles + ")",
+      body: body + "\nAll volunteers: " + SpreadsheetApp.getActiveSpreadsheet().getUrl(),
+      replyTo: record.email,
+    });
+  } catch (err) {
     console.error(err);
   }
 }
