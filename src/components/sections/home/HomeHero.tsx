@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import LetterReveal from "@/components/ui/LetterReveal";
 import { ethicsBowlRegistration, isRegistrationOpen } from "@/content/ethicsBowlRegistration";
+import { isVolunteerFormOpen } from "@/content/ethicsBowlVolunteer";
 
 const TITLE_LINE_1 = "What do we owe";
 const TITLE_LINE_2 = "to each other?";
@@ -20,6 +21,36 @@ const quotes = [
     attribution: "Potter Stewart",
   },
 ];
+
+interface HeroBannerProps {
+  to: string;
+  /** Shown on phones and in the two-column hero (lg), where the full label would wrap. */
+  shortLabel: string;
+  fullLabel: string;
+}
+
+/** "Now open" pill linking to an open Ethics Bowl form. */
+function HeroBanner({ to, shortLabel, fullLabel }: HeroBannerProps) {
+  return (
+    <Link
+      to={to}
+      className="group inline-flex max-w-full items-center gap-2 rounded-full border border-primary/40 bg-primary/10 py-1.5 pl-2 pr-3 sm:gap-3 sm:pr-4 text-sm text-background/90 transition-colors hover:border-primary hover:bg-primary/20"
+    >
+      <span className="flex-shrink-0 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground sm:px-2.5 sm:tracking-wider">
+        Now open
+      </span>
+      {/* Keep the pill on one line: a shorter label on narrow screens, truncated as a last resort. */}
+      <span className="min-w-0 truncate">
+        <span className="sm:hidden lg:inline xl:hidden">{shortLabel}</span>
+        <span className="hidden sm:inline lg:hidden xl:inline">{fullLabel}</span>
+      </span>
+      <ArrowRight
+        className="h-4 w-4 flex-shrink-0 text-primary transition-transform group-hover:translate-x-1"
+        aria-hidden
+      />
+    </Link>
+  );
+}
 
 /** Full-screen dark landing hero with the Socrates artwork and floating quotes. */
 export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
@@ -48,26 +79,23 @@ export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
 
       <div className="container relative z-10 grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div className="space-y-8 pt-20 animate-fade-in-up">
-          {isRegistrationOpen() && (
-            <Link
-              to="/register"
-              className="group inline-flex max-w-full items-center gap-2 rounded-full border border-primary/40 bg-primary/10 py-1.5 pl-2 pr-3 sm:gap-3 sm:pr-4 text-sm text-background/90 transition-colors hover:border-primary hover:bg-primary/20 stagger-1"
-            >
-              <span className="flex-shrink-0 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground sm:px-2.5 sm:tracking-wider">
-                Now open
-              </span>
-              {/* Keep the pill on one line: a shorter label on narrow screens, truncated as a last resort. */}
-              <span className="min-w-0 truncate">
-                <span className="sm:hidden lg:inline xl:hidden">Ethics Bowl registration</span>
-                <span className="hidden sm:inline lg:hidden xl:inline">
-                  {ethicsBowlRegistration.eventName} team registration
-                </span>
-              </span>
-              <ArrowRight
-                className="h-4 w-4 flex-shrink-0 text-primary transition-transform group-hover:translate-x-1"
-                aria-hidden
-              />
-            </Link>
+          {(isRegistrationOpen() || isVolunteerFormOpen()) && (
+            <div className="flex flex-col items-start gap-3 stagger-1">
+              {isRegistrationOpen() && (
+                <HeroBanner
+                  to="/register"
+                  shortLabel="Ethics Bowl registration"
+                  fullLabel={`${ethicsBowlRegistration.eventName} team registration`}
+                />
+              )}
+              {isVolunteerFormOpen() && (
+                <HeroBanner
+                  to="/volunteer"
+                  shortLabel="Volunteer at the Ethics Bowl"
+                  fullLabel={`Volunteer at the ${ethicsBowlRegistration.eventName}`}
+                />
+              )}
+            </div>
           )}
           <h1
             aria-label={`${TITLE_LINE_1} ${TITLE_LINE_2}`}
