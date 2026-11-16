@@ -1,31 +1,39 @@
 export interface PodcastEpisode {
+  /** URL slug: the episode lives at /initiatives/interview-series/<id>. */
   id: string;
-  title: string;
-  /** Optional guest or speaker line. */
-  guest?: string;
+  /** Who the conversation is with; the episode's heading. */
+  guest: string;
+  /** Optional line under the name, e.g. "Philosopher of technology, The New School". */
+  affiliation?: string;
   date?: string;
-  description: string;
-  /** Path under site root, e.g. /audio/interviews/episode-01.mp3 (file in public/audio/interviews/). */
-  audioSrc?: string;
-  /** Link to a recording hosted elsewhere (Google Drive, Zoom); used when there is no audioSrc. */
-  recordingUrl?: string;
+  /** Running time, e.g. "1 hr 42 min". */
+  duration?: string;
+  /** Optional summary of what the conversation covers. */
+  description?: string;
+  /** MP4 URL. Episodes without one are listed as "Coming soon" and don't link anywhere. */
+  videoSrc?: string;
 }
 
-/** Add an entry per episode: upload audio to public/audio/interviews/ or link a hosted recording. */
+/**
+ * One entry per episode, oldest first (episodes are numbered in this order).
+ * Videos are too large for the repo, so videoSrc points at the file in Vercel Blob
+ * (upload with `vercel blob put <file> --access public --pathname interviews/<id>.mp4`).
+ */
 export const episodes: PodcastEpisode[] = [
   {
     id: "matthew-adelstein",
-    title: "In Conversation with Matthew Adelstein",
     guest: "Matthew Adelstein",
-    description: "A conversation with Matthew Adelstein.",
-    recordingUrl: "https://drive.google.com/file/d/19jQu01-ALd55_zfjDvWAMUcWH2vS8xLe/view",
+    duration: "1 hr 42 min",
+    videoSrc:
+      "https://wmglpeo1wu4tgxlq.public.blob.vercel-storage.com/interviews/matthew-adelstein.mp4",
   },
   {
     id: "peter-asaro",
-    title: "In Conversation with Peter Asaro",
     guest: "Peter Asaro",
-    description: "A conversation with Peter Asaro.",
-    recordingUrl:
-      "https://princeton.zoom.us/rec/share/rrZPExaJlVHxmRuyEHlXSmeI3yZjKpvyY8FuCGuf1G2mS75Qmjqkrj7eTZbBXm0E.fncPfkeHwK8qZQNu",
   },
 ];
+
+/** Two-digit episode number from its position in the list, e.g. "01". */
+export function episodeNumber(episode: PodcastEpisode): string {
+  return String(episodes.indexOf(episode) + 1).padStart(2, "0");
+}

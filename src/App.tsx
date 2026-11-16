@@ -7,6 +7,7 @@ import EthicsBowlRegistrationPage from "@/pages/EthicsBowlRegistrationPage";
 import EthicsBowlVolunteerPage from "@/pages/EthicsBowlVolunteerPage";
 import HomePage from "@/pages/HomePage";
 import InitiativesPage from "@/pages/InitiativesPage";
+import InterviewEpisodePage from "@/pages/InterviewEpisodePage";
 import InterviewSeriesPage from "@/pages/InterviewSeriesPage";
 import JoinPage from "@/pages/JoinPage";
 import MagazinePage from "@/pages/MagazinePage";
@@ -27,6 +28,10 @@ export default function App() {
             <Route path="/initiatives" element={<InitiativesPage />} />
             <Route path="/initiatives/moments" element={<MomentsPage />} />
             <Route path="/initiatives/interview-series" element={<InterviewSeriesPage />} />
+            <Route
+              path="/initiatives/interview-series/:episodeId"
+              element={<InterviewEpisodePage />}
+            />
             <Route path="/journal" element={<MagazinePage />} />
             <Route path="/magazine" element={<MagazinePage />} />
             <Route path="/join" element={<JoinPage />} />

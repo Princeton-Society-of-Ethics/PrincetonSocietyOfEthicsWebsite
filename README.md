@@ -86,7 +86,7 @@ Most updates only touch `src/content/` — no component changes needed:
 
 - **Add/remove a team member** → edit `src/content/team.ts`. Put their photo in `public/images/team/` and reference it via `imageSrc`.
 - **Update navigation** → edit `src/content/site.ts`.
-- **Add a podcast episode** → add an entry in `src/content/episodes.ts`. Either drop the audio file in `public/audio/interviews/` and set `audioSrc`, or link a hosted recording (Google Drive, Zoom) with `recordingUrl`.
+- **Add a podcast episode** → upload the video to Vercel Blob (`vercel blob put <file> --access public --pathname interviews/<id>.mp4`), then add an entry in `src/content/episodes.ts` with the returned URL as `videoSrc`. Each episode gets its own page at `/initiatives/interview-series/<id>`; entries without a video show as "Coming soon".
 - **Post an announcement** → add an entry at the top of `src/content/announcements.ts`. It appears on the home page; the section hides when the list is empty.
 - **Change colors/fonts** → edit the `@theme` block in `src/index.css`.
 - **Open/close NJ High School Ethics Bowl registration** → edit `src/content/ethicsBowlRegistration.ts` (see below).
