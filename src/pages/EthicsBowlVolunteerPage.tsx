@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, Clock, ExternalLink } from "lucide-react"
 import { flushSync } from "react-dom";
 import { Link } from "react-router-dom";
 import PageHero, { Accent } from "@/components/sections/PageHero";
+import ClosedNotice from "@/components/sections/registration/ClosedNotice";
 import EventMeta from "@/components/sections/registration/EventMeta";
 import {
   EmailSuggestion,
@@ -95,7 +96,13 @@ export default function EthicsBowlVolunteerPage() {
             : `Volunteer sign-up for the ${fullEventName} is closed.`
         }
       />
-      {isOpen ? <VolunteerForm /> : <ClosedNotice />}
+      {isOpen ? (
+        <VolunteerForm />
+      ) : (
+        <ClosedNotice title="Volunteer Sign-up Is Closed">
+          Questions? Email us at <ContactLink />.
+        </ClosedNotice>
+      )}
     </>
   );
 }
@@ -105,27 +112,6 @@ function ContactLink() {
     <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">
       {contactEmail}
     </a>
-  );
-}
-
-function ClosedNotice() {
-  return (
-    <section className="border-t border-border bg-background py-24 animate-fade-in-up">
-      <div className="container max-w-2xl text-center">
-        <span className="mb-4 block font-serif text-sm italic text-primary">
-          Thank you for your interest
-        </span>
-        <h2 className="mb-6 font-serif text-4xl font-bold text-foreground md:text-5xl">
-          Volunteer Sign-up Is Closed
-        </h2>
-        <p className="mb-10 leading-relaxed text-muted-foreground">
-          Questions? Email us at <ContactLink />.
-        </p>
-        <Link to="/initiatives">
-          <Button size="lg">Explore Our Initiatives</Button>
-        </Link>
-      </div>
-    </section>
   );
 }
 

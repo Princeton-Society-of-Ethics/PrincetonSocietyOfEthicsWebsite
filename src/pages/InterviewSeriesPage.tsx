@@ -1,4 +1,4 @@
-import { Mic } from "lucide-react";
+import { ArrowUpRight, Mic } from "lucide-react";
 import PageHero, { Accent } from "@/components/sections/PageHero";
 import { episodes } from "@/content/episodes";
 
@@ -32,8 +32,8 @@ export default function InterviewSeriesPage() {
                 Episodes on the way
               </p>
               <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-                New conversations are being recorded now. Check back soon, or follow us on
-                Instagram for release announcements.
+                New conversations are being recorded now. Check back soon, or follow us on Instagram
+                for release announcements.
               </p>
             </div>
           ) : (
@@ -64,6 +64,19 @@ export default function InterviewSeriesPage() {
                     >
                       Your browser does not support embedded audio.
                     </audio>
+                  ) : episode.recordingUrl ? (
+                    <a
+                      href={episode.recordingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group mt-6 inline-flex items-center gap-1.5 font-medium text-primary transition-colors hover:text-primary/80"
+                    >
+                      Listen to the recording
+                      <ArrowUpRight
+                        className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
+                    </a>
                   ) : (
                     <p className="mt-6 text-sm italic text-muted-foreground">Audio coming soon.</p>
                   )}

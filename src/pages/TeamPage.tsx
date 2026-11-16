@@ -1,4 +1,3 @@
-import CtaBanner from "@/components/sections/CtaBanner";
 import PageHero, { Accent } from "@/components/sections/PageHero";
 import TeamMemberCard from "@/components/sections/TeamMemberCard";
 import TeamMemberGrid from "@/components/sections/TeamMemberGrid";
@@ -57,12 +56,6 @@ export default function TeamPage() {
           <TeamGroupMembers group={group} />
         </TeamSection>
       ))}
-
-      <CtaBanner
-        title="Interested in Leadership?"
-        description="Leadership applications open twice a year—in the fall and spring. Whether you care about events, publications, outreach, or operations, there's a place to lead in our community."
-        actions={[{ label: "Learn More About Joining", href: "/join" }]}
-      />
     </>
   );
 }

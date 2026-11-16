@@ -61,8 +61,10 @@ src/
     site.ts              Org name, navigation links, social links
     team.ts              Advisors and team member rosters
     initiatives.ts       Initiative descriptions + photo gallery data
-    join.ts              FAQ and "how to join" steps
+    join.ts              Join page FAQ
+    announcements.ts     Home page news posts
     ethicsBowlRegistration.ts  NJ HS Ethics Bowl registration switch + settings
+    ethicsBowlVolunteer.ts     Volunteer sign-up switch + settings
     magazine.ts          Telos issues and articles
     episodes.ts          Interview Series podcast episodes
   components/
@@ -84,9 +86,11 @@ Most updates only touch `src/content/` — no component changes needed:
 
 - **Add/remove a team member** → edit `src/content/team.ts`. Put their photo in `public/images/team/` and reference it via `imageSrc`.
 - **Update navigation** → edit `src/content/site.ts`.
-- **Add a podcast episode** → drop the audio file in `public/audio/interviews/` and add an entry in `src/content/episodes.ts`.
+- **Add a podcast episode** → add an entry in `src/content/episodes.ts`. Either drop the audio file in `public/audio/interviews/` and set `audioSrc`, or link a hosted recording (Google Drive, Zoom) with `recordingUrl`.
+- **Post an announcement** → add an entry at the top of `src/content/announcements.ts`. It appears on the home page; the section hides when the list is empty.
 - **Change colors/fonts** → edit the `@theme` block in `src/index.css`.
 - **Open/close NJ High School Ethics Bowl registration** → edit `src/content/ethicsBowlRegistration.ts` (see below).
+- **Open/close volunteer sign-up** → set `isOpen` in `src/content/ethicsBowlVolunteer.ts`. The form lives at `/volunteer` and reuses the event details from `ethicsBowlRegistration.ts`.
 
 ### NJ High School Ethics Bowl registration
 

@@ -54,6 +54,9 @@ function HeroBanner({ to, shortLabel, fullLabel }: HeroBannerProps) {
 
 /** Full-screen dark landing hero with the Socrates artwork and floating quotes. */
 export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
+  const registrationOpen = isRegistrationOpen();
+  const volunteerOpen = isVolunteerFormOpen();
+
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-foreground via-foreground to-foreground/95 pb-24 pt-32 text-background">
       {/* Soft orange glows */}
@@ -79,16 +82,16 @@ export default function HomeHero({ titleReveal = false }: HomeHeroProps) {
 
       <div className="container relative z-10 grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div className="space-y-8 pt-20 animate-fade-in-up">
-          {(isRegistrationOpen() || isVolunteerFormOpen()) && (
+          {(registrationOpen || volunteerOpen) && (
             <div className="flex flex-col items-start gap-3 stagger-1">
-              {isRegistrationOpen() && (
+              {registrationOpen && (
                 <HeroBanner
                   to="/register"
                   shortLabel="Ethics Bowl registration"
                   fullLabel={`${ethicsBowlRegistration.eventName} team registration`}
                 />
               )}
-              {isVolunteerFormOpen() && (
+              {volunteerOpen && (
                 <HeroBanner
                   to="/volunteer"
                   shortLabel="Volunteer at the Ethics Bowl"
