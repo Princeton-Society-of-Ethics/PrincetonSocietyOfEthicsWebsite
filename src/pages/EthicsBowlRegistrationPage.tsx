@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, Clock } from "lucide-react";
 import { flushSync } from "react-dom";
 import { Link } from "react-router-dom";
 import PageHero, { Accent } from "@/components/sections/PageHero";
+import ClosedNotice from "@/components/sections/registration/ClosedNotice";
 import EventMeta from "@/components/sections/registration/EventMeta";
 import SchoolPicker from "@/components/sections/registration/SchoolPicker";
 import {
@@ -96,22 +97,10 @@ export default function EthicsBowlRegistrationPage() {
         }
       />
 
-      {isOpen ? <RegistrationForm /> : <ClosedNotice />}
-    </>
-  );
-}
-
-function ClosedNotice() {
-  return (
-    <section className="border-t border-border bg-background py-24 animate-fade-in-up">
-      <div className="container max-w-2xl text-center">
-        <span className="mb-4 block font-serif text-sm italic text-primary">
-          Thank you for your interest
-        </span>
-        <h2 className="mb-6 font-serif text-4xl font-bold text-foreground md:text-5xl">
-          Registration Is Closed
-        </h2>
-        <p className="mb-10 leading-relaxed text-muted-foreground">
+      {isOpen ? (
+        <RegistrationForm />
+      ) : (
+        <ClosedNotice title="Registration Is Closed">
           Team registration for this season has ended. Registration for next year's {eventName} will
           open here in the fall.
           {contactEmail && (
@@ -124,12 +113,9 @@ function ClosedNotice() {
               .
             </>
           )}
-        </p>
-        <Link to="/initiatives">
-          <Button size="lg">Explore Our Initiatives</Button>
-        </Link>
-      </div>
-    </section>
+        </ClosedNotice>
+      )}
+    </>
   );
 }
 

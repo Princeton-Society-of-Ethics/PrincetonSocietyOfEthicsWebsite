@@ -4,7 +4,7 @@ import PageHero, { Accent } from "@/components/sections/PageHero";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
-import { faqs, joinSteps } from "@/content/join";
+import { faqs } from "@/content/join";
 import { submitJoinInquiry } from "@/lib/api/membership";
 
 type FormStatus =
@@ -38,40 +38,6 @@ export default function JoinPage() {
         }
         subtitle="Become part of a community dedicated to ethical inquiry, moral leadership, and meaningful dialogue."
       />
-
-      {/* How to join */}
-      <section className="border-t border-border bg-gradient-to-b from-secondary/20 to-background py-24 animate-fade-in-up">
-        <div className="container max-w-3xl">
-          <div className="mb-16 text-center stagger-1">
-            <span className="mb-4 block font-serif text-sm italic text-primary">
-              Getting Started
-            </span>
-            <h2 className="font-serif text-5xl font-bold text-foreground">How to Join</h2>
-          </div>
-
-          <ol className="space-y-8">
-            {joinSteps.map((step, index) => {
-              const isLast = index === joinSteps.length - 1;
-              return (
-                <li key={step.title} className={`relative flex gap-6 stagger-${index + 2}`}>
-                  {!isLast && (
-                    <div className="absolute bottom-0 left-6 top-12 w-1 bg-gradient-to-b from-primary to-primary/30" />
-                  )}
-                  <div className="relative z-10 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 font-serif text-lg font-bold text-primary-foreground shadow-lg">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h3 className="mb-2 font-serif text-xl font-bold text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="leading-relaxed text-muted-foreground">{step.description}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </section>
 
       {/* Inquiry form */}
       <section className="border-t border-border bg-background py-24 animate-fade-in-up">

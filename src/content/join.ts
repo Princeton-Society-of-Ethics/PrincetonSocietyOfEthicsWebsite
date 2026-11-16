@@ -35,26 +35,3 @@ export const faqs: Faq[] = [
       "We have several leadership positions available, including committee chairs for events, publications, outreach, and more. These roles are filled through an application process each spring and fall.",
   },
 ];
-
-export interface JoinStep {
-  title: string;
-  description: string;
-}
-
-export const joinSteps: JoinStep[] = [
-  {
-    title: "Attend an Event",
-    description:
-      "Come to one of our weekly discussion seminars or monthly speaker events. No registration required—just show up! Check our calendar for upcoming events.",
-  },
-  {
-    title: "Join Our Mailing List",
-    description:
-      "Sign up for our newsletter to receive updates about events, article submissions, and opportunities. We send out one email per week with upcoming activities.",
-  },
-  {
-    title: "Get Involved",
-    description:
-      "Contribute to discussions, submit articles to Telos, volunteer for events, or apply for a leadership position. There are many ways to participate at whatever level works for you.",
-  },
-];

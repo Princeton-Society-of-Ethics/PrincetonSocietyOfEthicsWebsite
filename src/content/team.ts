@@ -126,9 +126,6 @@ export const teamGroups: TeamGroup[] = [
           }),
           member("Alexandra DaSilva", "Member", "alexandra-dasilva"),
           member("Jae-hyeok Moon", "Member", "jae-hyeok-moon"),
-          member("Charlotte Ozecki", "Member", "charlotte-ozecki", {
-            linkedinUrl: "https://www.linkedin.com/in/charlotte-ozeki-285a53383/",
-          }),
           member("Jack Thompson", "Member", "jack-thompson", {
             linkedinUrl: "https://www.linkedin.com/in/jacktlab/",
           }),

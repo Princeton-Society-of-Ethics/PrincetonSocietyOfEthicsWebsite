@@ -26,6 +26,29 @@
   --animate-fade-in: fade-in 0.6s ease-out;
   --animate-fade-in-up: fade-in-up 0.6s ease-out;
   --animate-slide-in-right: slide-in-right 0.6s ease-out;
+  --animate-shine: shine 6s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+
+  /* A light sweep crosses once, then rests for the remainder of the cycle. */
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) skewX(-12deg);
+    }
+    30%,
+    100% {
+      transform: translateX(350%) skewX(-12deg);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
 
   @keyframes fade-in {
     from {
