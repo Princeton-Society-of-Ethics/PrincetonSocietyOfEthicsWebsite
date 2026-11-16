@@ -20,3 +20,6 @@ npm-debug.log*
 
 # Vercel local project linkage
 .vercel/
+
+# Interview videos live in Vercel Blob (too large for git); never commit local copies
+public/videos/
